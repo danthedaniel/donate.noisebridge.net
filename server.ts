@@ -1,10 +1,13 @@
-import Fastify from "fastify";
-import view from "@fastify/view";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import fastifyStatic from "@fastify/static";
+import view from "@fastify/view";
+import dotenv from "dotenv";
 import ejs from "ejs";
-import path from "path";
-import { fileURLToPath } from "url";
-import routes from "./routes.js";
+import Fastify from "fastify";
+import routes from "~/routes.js";
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
