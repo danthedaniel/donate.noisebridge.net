@@ -23,11 +23,29 @@ export function Layout({ title, script, styles, children }: LayoutProps) {
           <link rel="icon" href="/assets/image/favicon.svg" />
           <link rel="stylesheet" href="/assets/css/reset.css" />
           <link rel="stylesheet" href="/assets/css/main.css" />
+          <script type="module" src="/assets/js/main.mjs"></script>
           {styles && <link rel="stylesheet" href={`/assets/css/${styles}`} />}
           {script && <script type="module" src={`/assets/js/${script}`}></script>}
         </head>
         <body>
-          {children}
+          <nav class="navbar">
+            <div class="container">
+              <div class="navbar-content">
+                <img src="/assets/image/logo.svg" alt="Noisebridge" class="logo" />
+                <span class="site-title">Noisebridge Hacker Space</span>
+              </div>
+            </div>
+          </nav>
+          <main class="main-content">
+            <div class="container">
+              {children}
+            </div>
+          </main>
+          <footer class="footer">
+            <div class="container">
+              <p class="footer-text">Noisebridge is a 501(c)(3) non-profit. Our EIN is 26-3507741</p>
+            </div>
+          </footer>
         </body>
       </html>
     </>

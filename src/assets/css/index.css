@@ -1,0 +1,177 @@
+/* Hero Section */
+.hero {
+  text-align: center;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding: var(--spacing-xl) 0;
+}
+
+.hero h1 {
+  font-size: 2.75rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-sm);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+/* Donation Section */
+.donation-section {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.card {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.card h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-sm);
+}
+
+.card p {
+  font-size: 0.9375rem;
+  color: var(--color-text-light);
+  margin-bottom: var(--spacing-lg);
+  line-height: 1.6;
+}
+
+/* Amount Buttons */
+.amount-buttons {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.625rem;
+  margin-bottom: var(--spacing-lg);
+}
+
+.btn-amount {
+  background-color: var(--color-white);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  padding: 0.875rem 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.btn-amount:hover {
+  border-color: var(--color-text-light);
+  background-color: var(--color-background);
+}
+
+.btn-amount:focus,
+.btn-amount:active {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  outline: none;
+}
+
+/* Custom Amount Input */
+.custom-amount {
+  margin-bottom: var(--spacing-lg);
+}
+
+.custom-amount label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-xs);
+}
+
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-prefix {
+  position: absolute;
+  left: 1rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--color-text-light);
+  pointer-events: none;
+}
+
+.custom-amount input {
+  width: 100%;
+  padding: 0.875rem 1rem 0.875rem 2rem;
+  font-size: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background-color: var(--color-white);
+  transition: all 0.15s ease;
+  color: var(--color-text);
+}
+
+.custom-amount input:hover {
+  border-color: var(--color-text-light);
+}
+
+.custom-amount input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(204, 51, 51, 0.1);
+}
+
+.custom-amount input::placeholder {
+  color: var(--color-text-light);
+  opacity: 0.5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 2.25rem;
+  }
+
+  .tax-notice,
+  .description {
+    font-size: 1rem;
+  }
+
+  .membership-cta,
+  .onetime-donation {
+    padding: var(--spacing-lg);
+  }
+
+  .amount-buttons {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .hero h1 {
+    font-size: 1.875rem;
+  }
+
+  .hero {
+    padding: var(--spacing-lg) 0;
+  }
+
+  .amount-buttons {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .membership-cta h2,
+  .onetime-donation h2 {
+    font-size: 1.375rem;
+  }
+}
