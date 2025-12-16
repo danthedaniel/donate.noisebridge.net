@@ -4,11 +4,12 @@ import { Layout } from "~/components/layout";
 
 export interface AuthProps {
   title: string;
+  isAuthenticated: boolean;
 }
 
-export function AuthPage({ title }: AuthProps) {
+export function AuthPage({ title, isAuthenticated }: AuthProps) {
   return (
-    <Layout title={title} styles="auth.css">
+    <Layout title={title} styles="auth.css" script="auth.mjs" isAuthenticated={isAuthenticated}>
       <section class="auth-container">
         <div class="auth-card">
           <h1 class="auth-title">Sign In</h1>

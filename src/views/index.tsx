@@ -4,11 +4,12 @@ import { Layout } from "~/components/layout";
 
 export interface IndexProps {
   title: string;
+  isAuthenticated: boolean;
 }
 
-export function IndexPage({ title }: IndexProps) {
+export function IndexPage({ title, isAuthenticated }: IndexProps) {
   return (
-    <Layout title={title} script="index.mjs" styles="index.css">
+    <Layout title={title} script="index.mjs" styles="index.css" isAuthenticated={isAuthenticated}>
       <section class="hero">
         <h1>Support Noisebridge</h1>
         <p>All donations are tax-deductible. Noisebridge is a 501(c)(3) non-profit.</p>

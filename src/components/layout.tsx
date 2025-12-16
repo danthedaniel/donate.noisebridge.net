@@ -6,9 +6,10 @@ export type LayoutProps = PropsWithChildren<{
   title: string;
   script?: string;
   styles?: string;
+  isAuthenticated: boolean;
 }>;
 
-export function Layout({ title, script, styles, children }: LayoutProps) {
+export function Layout({ title, script, styles, isAuthenticated, children }: LayoutProps) {
   return (
     <>
       {"<!DOCTYPE html>"}
@@ -38,7 +39,11 @@ export function Layout({ title, script, styles, children }: LayoutProps) {
                   </a>
                 </div>
                 <div class="navbar-right">
-                  <a href="/auth" class="btn-sign-in">Sign In</a>
+                  {isAuthenticated ? (
+                    <a href="/auth/signout" class="btn-sign-in">Sign Out</a>
+                  ) : (
+                    <a href="/auth" class="btn-sign-in">Sign In</a>
+                  )}
                 </div>
               </div>
             </div>
