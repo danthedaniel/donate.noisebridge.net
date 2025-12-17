@@ -1,11 +1,9 @@
+import config from "~/config";
+
 const userAgent = "NoisebridgeDonorPortal";
 
-const serverHost = process.env["SERVER_HOST"];
-if (!serverHost) {
-  throw new Error("SERVER_HOST env var is not set");
-}
-const serverProtocol = process.env.NODE_ENV === "production" ? "https" : "http";
-export const githubRedirectUri = `${serverProtocol}://${serverHost}/auth/github/callback`;
+const serverProtocol = config.production ? "https" : "http";
+export const githubRedirectUri = `${serverProtocol}://${config.serverHost}/auth/github/callback`;
 
 interface GitHubTokenResponse {
   access_token: string;
@@ -32,28 +30,6 @@ interface GitHubEmail {
  * GitHubOAuth service for handling GitHub OAuth authentication
  */
 export class GitHubOAuth {
-  private readonly clientId: string;
-  private readonly clientSecret: string;
-
-  constructor() {
-    const clientId = process.env["GITHUB_CLIENT_ID"];
-    if (!clientId) {
-      throw new Error(
-        "Missing required GitHub OAuth environment variables: GITHUB_CLIENT_ID"
-      );
-    }
-
-    const clientSecret = process.env["GITHUB_SECRET"];
-    if (!clientSecret) {
-      throw new Error(
-        "Missing required GitHub OAuth environment variables: GITHUB_SECRET"
-      );
-    }
-
-    this.clientId = clientId;
-    this.clientSecret = clientSecret;
-  }
-
   /**
    * Build the GitHub OAuth authorization URL
    * @param redirectUri - The URI to redirect to after authorization
@@ -66,7 +42,7 @@ export class GitHubOAuth {
     scopes: string[]
   ): string {
     const params = new URLSearchParams({
-      client_id: this.clientId,
+      client_id: config.githubClientId,
       redirect_uri: redirectUri,
       state: state,
       scope: scopes.join(" "),
@@ -88,19 +64,17 @@ export class GitHubOAuth {
         Accept: "application/json",
       },
       body: JSON.stringify({
-        client_id: this.clientId,
-        client_secret: this.clientSecret,
+        client_id: config.githubClientId,
+        client_secret: config.githubSecret,
         code: code,
         redirect_uri: redirectUri,
       }),
     });
-
     if (!response.ok) {
       throw new Error(`Failed to get access token: ${response.statusText}`);
     }
 
     const data = (await response.json()) as GitHubTokenResponse;
-
     if (!data.access_token) {
       throw new Error("No access token in response");
     }
@@ -120,7 +94,6 @@ export class GitHubOAuth {
         "User-Agent": userAgent,
       },
     });
-
     if (!response.ok) {
       throw new Error(`Failed to get user profile: ${response.statusText}`);
     }
@@ -140,7 +113,6 @@ export class GitHubOAuth {
         "User-Agent": userAgent,
       },
     });
-
     if (!response.ok) {
       throw new Error(`Failed to get user emails: ${response.statusText}`);
     }

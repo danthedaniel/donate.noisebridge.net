@@ -4,7 +4,7 @@
   padding: var(--spacing-xxl) 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: start;
   align-items: center;
   min-height: calc(100vh - 200px);
 }
@@ -25,7 +25,6 @@
 }
 
 .auth-title {
-  font-family: var(--font-eurostile);
   font-size: 2rem;
   font-weight: 700;
   margin: 0 0 var(--spacing-xs) 0;
@@ -49,7 +48,7 @@
   margin-bottom: var(--spacing-lg);
 }
 
-.btn-oauth {
+.btn-auth {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -66,14 +65,14 @@
   width: 100%;
 }
 
-.btn-oauth:hover {
+.btn-auth:hover {
   background-color: var(--color-background);
   border-color: var(--color-text-light);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.btn-oauth:active {
+.btn-auth:active {
   transform: translateY(0);
 }
 

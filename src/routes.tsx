@@ -4,9 +4,10 @@ import type { FastifyInstance } from "fastify";
 import type { FastifyReply } from "fastify/types/reply";
 import type { FastifyRequest } from "fastify/types/request";
 import type Stripe from "stripe";
+import config from "~/config";
 import { magicLinkEmail } from "~/emails/magic-link";
 import { CookieName, cookies, getRandomState } from "~/managers/auth";
-import { decodeMagicLinkState, generateMagicLinkUrl, verifyMagicLinkCode } from "~/managers/magic-link";
+import magicLinkManager from "~/managers/magic-link";
 import githubOAuth, { githubRedirectUri } from "~/services/github";
 import googleOAuth, { googleRedirectUri } from "~/services/google";
 import resend from "~/services/resend";
@@ -16,8 +17,6 @@ import { AuthEmailPage } from "~/views/auth/email";
 import { IndexPage } from "~/views/index";
 import { ManagePage } from "~/views/manage";
 import { ThankYouPage } from "~/views/thank-you";
-
-const minimumAmount = 2;
 
 const paths = {
   index: (error?: string) => error ? `/?error=${encodeURIComponent(error)}` : `/`,
@@ -38,7 +37,6 @@ export enum ErrorCode {
   InvalidMagicLink = "Invalid magic link",
   MagicLinkExpired = "Magic link has expired. Please request a new one.",
   InvalidDonationAmount = "Please select a valid donation amount",
-  InvalidCustomAmount = `Please enter a valid custom amount`,
   StripeSessionError = "Unable to process donation. Please try again.",
 }
 
@@ -49,12 +47,18 @@ function isAuthenticated(
   return cookies[CookieName.UserSession](request, reply).valid();
 }
 
-export default async function routes(fastify: FastifyInstance) {
-  const hostname = process.env["SERVER_HOST"];
-  if (!hostname) {
-    throw new Error("SERVER_HOST env var is not set");
+function parseDonationAmount(amount?: string) {
+  const minimumAmount = 2; // dollars
+
+  const parsed = Number.parseFloat(amount || "");
+  if (!parsed || parsed < minimumAmount) {
+    return null;
   }
 
+  return Math.round(parsed * 100); // Convert to cents
+}
+
+export default async function routes(fastify: FastifyInstance) {
   fastify.get<{
     Querystring: { error?: string };
   }>("/", async (request, reply) => {
@@ -204,7 +208,7 @@ export default async function routes(fastify: FastifyInstance) {
       return reply.redirect(paths.signIn(ErrorCode.EmailInvalid));
     }
 
-    const magicLinkUrl = generateMagicLinkUrl(email);
+    const magicLinkUrl = magicLinkManager.generateMagicLinkUrl(email);
     const emailHtml = magicLinkEmail({
       email,
       magicLinkUrl,
@@ -249,7 +253,7 @@ export default async function routes(fastify: FastifyInstance) {
     }
 
     // Decode the state parameter
-    const magicLinkState = decodeMagicLinkState(state);
+    const magicLinkState = magicLinkManager.decodeMagicLinkState(state);
     if (!magicLinkState) {
       fastify.log.warn("Invalid state parameter in magic link callback");
       return reply.redirect(paths.signIn(ErrorCode.InvalidMagicLink));
@@ -258,7 +262,7 @@ export default async function routes(fastify: FastifyInstance) {
     const { email, code } = magicLinkState;
 
     // Verify the HMAC code (checks current, 1 past, and 1 future time window)
-    const isValid = verifyMagicLinkCode(email, code);
+    const isValid = magicLinkManager.verifyMagicLinkCode(email, code);
     if (!isValid) {
       fastify.log.warn({ email }, "Invalid or expired magic link code");
       return reply.redirect(paths.signIn(ErrorCode.MagicLinkExpired));
@@ -301,7 +305,7 @@ export default async function routes(fastify: FastifyInstance) {
     }
 
     return reply.html(
-      <ManagePage stripeCustomer={stripeCustomer} />,
+      <ManagePage customer={stripeCustomer} />,
     );
   });
 
@@ -310,22 +314,10 @@ export default async function routes(fastify: FastifyInstance) {
   }>("/donate", async (request, reply) => {
     const { amount, "custom-amount": customAmount } = request.body || {};
 
-    // Validate and parse the amount
-    let donationAmount: number;
-    if (amount === "custom") {
-      const parsed = Number.parseFloat(customAmount || "");
-      if (!parsed || parsed < minimumAmount) {
-        fastify.log.warn({ customAmount }, "Invalid custom donation amount");
-        return reply.redirect(paths.index(ErrorCode.InvalidCustomAmount));
-      }
-      donationAmount = Math.round(parsed * 100); // Convert to cents
-    } else {
-      const parsed = Number.parseFloat(amount || "");
-      if (!parsed || parsed < minimumAmount) {
-        fastify.log.warn({ amount }, "Invalid donation amount");
-        return reply.redirect(paths.index(ErrorCode.InvalidDonationAmount));
-      }
-      donationAmount = Math.round(parsed * 100); // Convert to cents
+    const amountCents = parseDonationAmount(amount === "custom" ? customAmount : amount);
+    if (amountCents === null) {
+      reply.redirect(paths.index(ErrorCode.InvalidDonationAmount));
+      return;
     }
 
     // Create a Stripe Checkout Session for one-time payment
@@ -339,14 +331,14 @@ export default async function routes(fastify: FastifyInstance) {
               name: "Donation to Noisebridge",
               description: "Support our hackerspace community",
             },
-            unit_amount: donationAmount,
+            unit_amount: amountCents,
           },
           quantity: 1,
         },
       ],
       mode: "payment",
-      success_url: `${request.protocol}://${hostname}/thank-you`,
-      cancel_url: `${request.protocol}://${hostname}/`,
+      success_url: `${request.protocol}://${config.serverHost}/thank-you`,
+      cancel_url: `${request.protocol}://${config.serverHost}/`,
     });
 
     if (!session.url) {
@@ -355,7 +347,7 @@ export default async function routes(fastify: FastifyInstance) {
     }
 
     fastify.log.info(
-      { amount: donationAmount, sessionId: session.id },
+      { amount: amountCents, sessionId: session.id },
       "Stripe checkout session created for donation",
     );
 

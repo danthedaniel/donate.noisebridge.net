@@ -1,0 +1,105 @@
+// biome-ignore lint/correctness/noUnusedImports: Html is used by JSX
+import Html from "@kitajs/html";
+import type Stripe from "stripe";
+
+interface Tier {
+  id: string;
+  name: string;
+  amount: number;
+}
+
+const TIERS: Tier[] = [
+  { id: "starving", name: "Starving Hacker", amount: 50 },
+  { id: "employed", name: "Employed Hacker", amount: 100 },
+  { id: "rich", name: "Rich Hacker", amount: 200 },
+];
+
+interface DonationTierSelectorProps {
+  subscription?: Stripe.Subscription | undefined;
+}
+
+function tierChecked(
+  tier: Tier,
+  existingAmount: number | null,
+): boolean {
+  if (!existingAmount) {
+    return tier.id === "employed";
+  }
+
+  return tier.amount === existingAmount / 100;
+}
+
+export function DonationTierSelector({ subscription }: DonationTierSelectorProps) {
+  const existingAmount = subscription?.items?.data[0]?.price?.unit_amount ?? null;
+  const tiers = TIERS.map(tier => ({ ...tier, checked: tierChecked(tier, existingAmount) }));
+  const hasCustomAmount = tiers.find((tier) => tier.checked) === undefined;
+
+  return (
+    <form method="POST" action="/subscribe" class="donation-tier-form">
+      <p class="form-description">
+        Choose a monthly donation tier to support Noisebridge
+      </p>
+
+      <div class="tier-options">
+        {tiers.map((tier) => (
+          <label class="tier-card" for={`tier-${tier.id}`}>
+            <input
+              type="radio"
+              id={`tier-${tier.id}`}
+              name="tier"
+              value={tier.amount.toString()}
+              required
+              checked={tier.checked}
+            />
+            <div class="tier-content">
+              <h3 class="tier-name">{tier.name}</h3>
+              <div class="tier-amount">
+                <span class="currency">$</span>
+                <span class="amount">{tier.amount}</span>
+                <span class="period">/month</span>
+              </div>
+            </div>
+            <div class="tier-checkmark">
+              <img src="/assets/image/checkmark.svg" alt="Selected" />
+            </div>
+          </label>
+        ))}
+
+        <label class="tier-card tier-card-custom" for="tier-custom">
+          <input
+            type="radio"
+            id="tier-custom"
+            name="tier"
+            value="custom"
+            required
+            checked={hasCustomAmount}
+          />
+          <div class="tier-content">
+            <h3 class="tier-name">Custom Amount</h3>
+            <div class="custom-amount-input">
+              <span class="currency">$</span>
+              <input
+                type="number"
+                name="customAmount"
+                id="customAmount"
+                min="5"
+                step="1"
+                class="custom-input"
+                placeholder="0.00"
+                value={hasCustomAmount ? ((existingAmount ?? 0) / 100).toFixed(2) : undefined}
+              />
+              <span class="period">/month</span>
+            </div>
+          </div>
+          <div class="tier-checkmark">
+            <img src="/assets/image/checkmark.svg" alt="Selected" />
+          </div>
+        </label>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-large">
+        {subscription ? "Update Montly Donation" : "Start Monthly Donation"}
+      </button>
+    </form>
+  );
+}

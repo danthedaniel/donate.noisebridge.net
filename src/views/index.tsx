@@ -28,7 +28,9 @@ export function IndexPage({ isAuthenticated, error }: IndexProps) {
             Help keep our hackerspace running and accessible to everyone. Your contribution supports workshops,
             equipment, and a vibrant community of makers, thinkers, and tinkerers.
           </p>
-          <a class="btn btn-primary btn-large" href="/auth">Start Membership Donation</a>
+          <a class="btn btn-primary btn-large" href={isAuthenticated ? "/manage" : "/auth"}>
+            {isAuthenticated ? "Manage Your Donation" : "Start Membership Donation"}
+          </a>
         </div>
 
         <div class="card onetime-donation">

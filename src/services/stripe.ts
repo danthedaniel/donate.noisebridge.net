@@ -1,10 +1,6 @@
 import Stripe from "stripe";
+import config from "~/config";
 
-const secretKey = process.env["STRIPE_SECRET_KEY"];
-if (!secretKey) {
-  throw new Error("STRIPE_SECRET_KEY env var not set!");
-}
-
-const stripe = new Stripe(secretKey);
+const stripe = new Stripe(config.stripeSecretKey);
 
 export default stripe;

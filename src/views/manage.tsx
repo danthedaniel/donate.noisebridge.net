@@ -1,39 +1,35 @@
 // biome-ignore lint/correctness/noUnusedImports: Html is used by JSX
 import Html from "@kitajs/html";
 import type Stripe from "stripe";
+import { DonationTierSelector } from "~/components/donation-tier-selector";
 import { Layout } from "~/components/layout";
 
 export interface ManageProps {
-  stripeCustomer: Stripe.Customer | undefined;
+  customer?: Stripe.Customer | undefined;
+  subscription?: Stripe.Subscription | undefined;
 }
 
-export function ManagePage({ stripeCustomer }: ManageProps) {
+export function ManagePage({ customer, subscription }: ManageProps) {
   return (
-    <Layout title="Manage your Donation" styles="manage.css" isAuthenticated={true}>
+    <Layout title="Manage your Donation" styles="manage.css" script="manage.mjs" isAuthenticated={true}>
       <section class="manage-container">
         <div class="manage-header">
-          <h1>Manage Your Donation</h1>
+          <h1>{customer ? "Manage your Donation" : "Start a Donation"}</h1>
         </div>
 
-        <div class="customer-details">
-          <div class="card">
-            <h2>Account Information</h2>
-            <dl class="details-list">
-              <dt>Email:</dt>
-              <dd>{stripeCustomer?.email}</dd>
+        <DonationTierSelector subscription={subscription} />
 
-              {stripeCustomer?.name && (
-                <>
-                  <dt>Name:</dt>
-                  <dd>{stripeCustomer?.name}</dd>
-                </>
-              )}
+        {subscription && (
+          <form method="POST" action="/cancel" class="card cancel-subscription-form">
+            <p class="form-description">
+              Or, if you want to cancel your subscription, click the button below.
+            </p>
 
-              <dt>Customer ID:</dt>
-              <dd class="monospace">{stripeCustomer?.id}</dd>
-            </dl>
-          </div>
-        </div>
+            <button type="submit" class="btn btn-secondary btn-large">
+              Cancel Monthly Donation
+            </button>
+          </form>
+        )}
       </section>
     </Layout>
   );

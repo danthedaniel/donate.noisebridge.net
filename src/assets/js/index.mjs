@@ -1,8 +1,5 @@
 // @ts-check
 
-/**
- * Enable/disable custom amount input and donate button based on selection
- */
 document.addEventListener('DOMContentLoaded', () => {
   const customAmountInput = /** @type {HTMLInputElement} */ (
     document.getElementById("custom-amount")

@@ -5,6 +5,7 @@ import fastifyFormbody from "@fastify/formbody";
 import fastifyStatic from "@fastify/static";
 import html from "@kitajs/fastify-html-plugin";
 import Fastify from "fastify";
+import config from "~/config";
 import routes from "~/routes";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -14,13 +15,8 @@ const fastify = Fastify({
   logger: true,
 });
 
-const cookieSecret = process.env["COOKIE_SECRET"];
-if (!cookieSecret) {
-  throw new Error("COOKIE_SECRET env var was not set!");
-}
-
 fastify.register(fastifyCookie, {
-  secret: cookieSecret,
+  secret: config.cookieSecret,
 });
 
 fastify.register(fastifyFormbody);

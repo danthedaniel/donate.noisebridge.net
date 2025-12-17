@@ -1,11 +1,9 @@
+import config from "~/config";
+
 const userAgent = "NoisebridgeDonorPortal";
 
-const serverHost = process.env["SERVER_HOST"];
-if (!serverHost) {
-  throw new Error("SERVER_HOST env var is not set");
-}
-const serverProtocol = process.env.NODE_ENV === "production" ? "https" : "http";
-export const googleRedirectUri = `${serverProtocol}://${serverHost}/auth/google/callback`;
+const serverProtocol = config.production ? "https" : "http";
+export const googleRedirectUri = `${serverProtocol}://${config.serverHost}/auth/google/callback`;
 
 interface GoogleTokenResponse {
   access_token: string;
@@ -30,28 +28,6 @@ interface GoogleUserInfo {
  * GoogleOAuth service for handling Google OAuth 2.0 authentication
  */
 export class GoogleOAuth {
-  private readonly clientId: string;
-  private readonly clientSecret: string;
-
-  constructor() {
-    const clientId = process.env["GOOGLE_CLIENT_ID"];
-    if (!clientId) {
-      throw new Error(
-        "Missing required Google OAuth environment variables: GOOGLE_CLIENT_ID"
-      );
-    }
-
-    const clientSecret = process.env["GOOGLE_SECRET"];
-    if (!clientSecret) {
-      throw new Error(
-        "Missing required Google OAuth environment variables: GOOGLE_SECRET"
-      );
-    }
-
-    this.clientId = clientId;
-    this.clientSecret = clientSecret;
-  }
-
   /**
    * Build the Google OAuth authorization URL
    * @param redirectUri - The URI to redirect to after authorization
@@ -64,7 +40,7 @@ export class GoogleOAuth {
     scopes: string[]
   ): string {
     const params = new URLSearchParams({
-      client_id: this.clientId,
+      client_id: config.googleClientId,
       redirect_uri: redirectUri,
       response_type: "code",
       scope: scopes.join(" "),
@@ -89,21 +65,19 @@ export class GoogleOAuth {
         "User-Agent": userAgent,
       },
       body: new URLSearchParams({
-        client_id: this.clientId,
-        client_secret: this.clientSecret,
+        client_id: config.googleClientId,
+        client_secret: config.googleSecret,
         code: code,
         redirect_uri: redirectUri,
         grant_type: "authorization_code",
       }),
     });
-
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`Failed to get access token: ${response.statusText} - ${errorText}`);
     }
 
     const data = (await response.json()) as GoogleTokenResponse;
-
     if (!data.access_token) {
       throw new Error("No access token in response");
     }
@@ -122,7 +96,6 @@ export class GoogleOAuth {
         "User-Agent": userAgent,
       },
     });
-
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`Failed to get user info: ${response.statusText} - ${errorText}`);

@@ -1,4 +1,7 @@
 .manage-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
   max-width: 900px;
   margin: 0 auto;
   padding: 2rem 1rem;
@@ -6,7 +9,6 @@
 
 .manage-header {
   text-align: center;
-  margin-bottom: 3rem;
 }
 
 .manage-header h1 {
@@ -77,7 +79,7 @@
 }
 
 .monospace {
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Courier New", Courier, monospace;
   font-size: 0.9em;
   color: var(--text-secondary);
 }
@@ -149,6 +151,175 @@
   background-color: var(--danger-hover);
 }
 
+/* Donation Tier Selector Styles */
+.donation-setup {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.donation-tier-form {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.donation-tier-form h2 {
+  font-size: 1.75rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.form-description {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+}
+
+.tier-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.tier-card {
+  position: relative;
+  display: block;
+  padding: 1.5rem;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-color, #e0e0e0);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tier-card:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tier-card input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.tier-content {
+  text-align: center;
+  transition: color 0.3s ease;
+}
+
+.tier-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.tier-amount {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.tier-amount .currency {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.tier-amount .period {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.tier-checkmark {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 24px;
+  height: 24px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  color: var(--primary-color);
+}
+
+.tier-card input[type="radio"]:checked~.tier-checkmark {
+  opacity: 1;
+}
+
+.tier-card:has(input[type="radio"]:checked) {
+  border-color: var(--primary-color);
+  background: var(--primary-light, rgba(99, 102, 241, 0.05));
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
+
+.custom-amount-input {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1.5rem;
+}
+
+.custom-amount-input .currency {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.custom-amount-input .period {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.custom-input {
+  width: 120px;
+  padding: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 6px;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  transition: border-color 0.3s ease;
+}
+
+.custom-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.custom-input::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.5;
+  font-size: 1.5rem;
+  font-weight: 400;
+}
+
+.custom-input::-webkit-outer-spin-button,
+.custom-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.custom-input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.tier-card-custom:has(input[type="radio"]:checked) .custom-input {
+  border-color: var(--primary-color);
+}
+
 @media (max-width: 768px) {
   .manage-header h1 {
     font-size: 2rem;
@@ -187,5 +358,9 @@
 
   .details-list dt:first-child {
     margin-top: 0;
+  }
+
+  .tier-options {
+    grid-template-columns: 1fr;
   }
 }
