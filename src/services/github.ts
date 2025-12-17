@@ -1,6 +1,4 @@
-import crypto from "node:crypto";
-
-const userAgent = 'NoisebridgeDonorPortal';
+const userAgent = "NoisebridgeDonorPortal";
 
 interface GitHubTokenResponse {
   access_token: string;
@@ -47,13 +45,6 @@ export class GitHubOAuth {
 
     this.clientId = clientId;
     this.clientSecret = clientSecret;
-  }
-
-  /**
-   * Generate a cryptographically secure random state parameter for CSRF protection
-   */
-  generateState(): string {
-    return crypto.randomBytes(32).toString("hex");
   }
 
   /**

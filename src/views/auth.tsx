@@ -5,24 +5,43 @@ import { Layout } from "~/components/layout";
 export interface AuthProps {
   title: string;
   isAuthenticated: boolean;
+  error?: string | undefined;
 }
 
-export function AuthPage({ title, isAuthenticated }: AuthProps) {
+export function AuthPage({ title, isAuthenticated, error }: AuthProps) {
   return (
-    <Layout title={title} styles="auth.css" script="auth.mjs" isAuthenticated={isAuthenticated}>
+    <Layout
+      title={title}
+      styles="auth.css"
+      script="auth.mjs"
+      isAuthenticated={isAuthenticated}
+    >
       <section class="auth-container">
+        {error && (
+          <div class="error-banner" role="alert">
+            <span class="error-message">{error}</span>
+          </div>
+        )}
         <div class="auth-card">
           <h1 class="auth-title">Sign In</h1>
           <p class="auth-subtitle">Sign in to manage your monthly donation</p>
 
           <div class="oauth-buttons">
             <button class="btn btn-oauth btn-github" type="button">
-              <img class="oauth-icon" src="/assets/image/github.svg" alt="GitHub Logo" />
+              <img
+                class="oauth-icon"
+                src="/assets/image/github.svg"
+                alt="GitHub Logo"
+              />
               Continue with GitHub
             </button>
 
             <button class="btn btn-oauth btn-google" type="button">
-              <img class="oauth-icon" src="/assets/image/google.svg" alt="Google Logo" />
+              <img
+                class="oauth-icon"
+                src="/assets/image/google.svg"
+                alt="Google Logo"
+              />
               Continue with Google
             </button>
           </div>
@@ -33,9 +52,15 @@ export function AuthPage({ title, isAuthenticated }: AuthProps) {
 
           <div class="magic-link-section">
             <h2 class="magic-link-title">Sign in with Email</h2>
-            <p class="magic-link-description">We'll send you a link to sign in</p>
+            <p class="magic-link-description">
+              We'll send you a link to sign in
+            </p>
 
-            <form class="magic-link-form" method="post" action="/auth/magic-link">
+            <form
+              class="magic-link-form"
+              method="post"
+              action="/auth/magic-link"
+            >
               <div class="form-group">
                 <input
                   type="email"

@@ -6,16 +6,14 @@ import { Layout } from "~/components/layout";
 export interface ManageProps {
   title: string;
   stripeCustomer: Stripe.Customer | undefined;
-  isAuthenticated: boolean;
 }
 
 export function ManagePage({
   title,
   stripeCustomer,
-  isAuthenticated,
 }: ManageProps) {
   return (
-    <Layout title={title} styles="manage.css" isAuthenticated={isAuthenticated}>
+    <Layout title={title} styles="manage.css" isAuthenticated={true}>
       <section class="manage-container">
         <div class="manage-header">
           <h1>Manage Your Donation</h1>

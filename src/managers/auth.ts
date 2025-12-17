@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import type { FastifyReply, FastifyRequest } from "fastify";
 
 export interface SessionData {
@@ -5,137 +6,90 @@ export interface SessionData {
   provider: "github" | "google" | "magic_link";
 }
 
-export interface CookieOptions {
-  signed: boolean;
-  httpOnly: boolean;
-  secure: boolean;
-  sameSite: "lax" | "strict" | "none";
-  path: string;
-  maxAge: number;
+export interface OAuthState {
+  state: string;
 }
 
-/**
- * Get default cookie options based on environment
- */
-function getDefaultCookieOptions(): Omit<CookieOptions, "maxAge"> {
-  return {
-    signed: true,
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-  };
+export enum CookieName {
+  GithubOAuthState = "github_oauth_state",
+  UserSession = "user_session",
 }
 
-/**
- * Set the OAuth state cookie for CSRF protection
- */
-export function setOAuthStateCookie(
-  reply: FastifyReply,
-  state: string,
-): void {
-  reply.setCookie("github_oauth_state", state, {
-    ...getDefaultCookieOptions(),
-    maxAge: 600, // 10 minutes
-  });
+const serverHost = process.env["SERVER_HOST"];
+if (!serverHost) {
+  throw new Error("SERVER_HOST env var is not set");
 }
+export const githubRedirectUri = `${process.env.NODE_ENV === "production" ? "https" : "http"}://${serverHost}/auth/github/callback`;
 
-/**
- * Verify and retrieve the OAuth state from the cookie
- * Returns the state value if valid, null otherwise
- */
-export function verifyOAuthStateCookie(
-  request: FastifyRequest,
-  expectedState: string,
-): boolean {
-  const storedState = request.unsignCookie(
-    request.cookies["github_oauth_state"] || "",
-  );
+class SignedCookie<T> {
+  private readonly request: FastifyRequest;
+  private readonly reply: FastifyReply;
+  private readonly name: CookieName;
+  private readonly maxAge: number;
 
-  return storedState.valid && storedState.value === expectedState;
-}
-
-/**
- * Set the user session cookie
- */
-export function setSessionCookie(
-  reply: FastifyReply,
-  sessionData: SessionData,
-): void {
-  reply.setCookie("user_session", JSON.stringify(sessionData), {
-    ...getDefaultCookieOptions(),
-    maxAge: 2 * 60 * 60 * 1000, // 2 hours
-  });
-}
-
-/**
- * Retrieve and verify the session data from the cookie
- * Returns the session data if valid, null otherwise
- */
-export function getSessionData(
-  request: FastifyRequest,
-): SessionData | null {
-  const sessionCookie = request.cookies["user_session"];
-  if (!sessionCookie) {
-    return null;
+  constructor(request: FastifyRequest, reply: FastifyReply, name: CookieName, maxAge: number) {
+    this.request = request;
+    this.reply = reply;
+    this.name = name;
+    this.maxAge = maxAge;
   }
 
-  // Verify and parse the signed cookie
-  const unsignedSession = request.unsignCookie(sessionCookie);
-  if (!unsignedSession.valid) {
-    return null;
+  valid(): boolean {
+    const signedValue = this.request.cookies[this.name];
+    if (!signedValue) {
+      return false;
+    }
+
+    const { valid, value } = this.request.unsignCookie(signedValue);
+    return valid && value !== null;
   }
 
-  // Parse the session data
-  try {
-    const sessionData = JSON.parse(
-      unsignedSession.value || "{}",
-    ) as SessionData;
-
-    // Validate session has required fields
-    if (!sessionData.email || !sessionData.provider) {
+  get value(): T | null {
+    const signedValue = this.request.cookies[this.name];
+    if (!signedValue) {
       return null;
     }
 
-    return sessionData;
-  } catch {
-    return null;
+    const { valid, value: rawValue } = this.request.unsignCookie(signedValue);
+    if (!valid) {
+      return null;
+    }
+    if (rawValue === null) {
+      return null;
+    }
+
+    let parsedValue: unknown;
+    try {
+      parsedValue = JSON.parse(rawValue);
+    } catch (e) {
+      this.request.log.error(e, `Failed to parse ${this.name} cookie`);
+      return null;
+    }
+
+    return parsedValue as T;
+  }
+
+  set value(newValue: T) {
+    this.reply.setCookie(this.name, JSON.stringify(newValue), {
+      signed: true,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: this.maxAge,
+    });
+  }
+
+  clear() {
+    this.reply.clearCookie(this.name, { path: "/" });
   }
 }
 
-/**
- * Clear the user session cookie
- */
-export function clearSessionCookie(reply: FastifyReply): void {
-  reply.clearCookie("user_session", { path: "/" });
-}
+export const cookies = {
+  [CookieName.UserSession]: (request: FastifyRequest, reply: FastifyReply) => new SignedCookie<SessionData>(request, reply, CookieName.UserSession, 60 * 60 * 2),
+  [CookieName.GithubOAuthState]: (request: FastifyRequest, reply: FastifyReply) => new SignedCookie<OAuthState>(request, reply, CookieName.GithubOAuthState, 60 * 10),
+} as const;
 
-/**
- * Check if a session is valid and redirect if not
- * Returns the session data if valid, redirects and returns null otherwise
- */
-export async function requireSession(
-  request: FastifyRequest,
-  reply: FastifyReply,
-): Promise<SessionData | null> {
-  const sessionData = getSessionData(request);
-
-  if (!sessionData) {
-    await reply.redirect("/");
-    return null;
-  }
-
-  return sessionData;
-}
-
-/**
- * Build the OAuth redirect URI based on the current request
- */
-export function buildRedirectUri(
-  request: FastifyRequest,
-  path: string,
-): string {
-  const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
-  const host = request.headers.host || "localhost:3000";
-  return `${protocol}://${host}${path}`;
+export function getRandomState() {
+  return crypto.randomBytes(32).toString("hex");
 }
