@@ -12,14 +12,9 @@ export interface OAuthState {
 
 export enum CookieName {
   GithubOAuthState = "github_oauth_state",
+  GoogleOAuthState = "google_oauth_state",
   UserSession = "user_session",
 }
-
-const serverHost = process.env["SERVER_HOST"];
-if (!serverHost) {
-  throw new Error("SERVER_HOST env var is not set");
-}
-export const githubRedirectUri = `${process.env.NODE_ENV === "production" ? "https" : "http"}://${serverHost}/auth/github/callback`;
 
 class SignedCookie<T> {
   private readonly request: FastifyRequest;
@@ -88,6 +83,7 @@ class SignedCookie<T> {
 export const cookies = {
   [CookieName.UserSession]: (request: FastifyRequest, reply: FastifyReply) => new SignedCookie<SessionData>(request, reply, CookieName.UserSession, 60 * 60 * 2),
   [CookieName.GithubOAuthState]: (request: FastifyRequest, reply: FastifyReply) => new SignedCookie<OAuthState>(request, reply, CookieName.GithubOAuthState, 60 * 10),
+  [CookieName.GoogleOAuthState]: (request: FastifyRequest, reply: FastifyReply) => new SignedCookie<OAuthState>(request, reply, CookieName.GoogleOAuthState, 60 * 10),
 } as const;
 
 export function getRandomState() {

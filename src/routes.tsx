@@ -5,9 +5,10 @@ import type { FastifyReply } from "fastify/types/reply";
 import type { FastifyRequest } from "fastify/types/request";
 import type Stripe from "stripe";
 import { magicLinkEmail } from "~/emails/magic-link";
-import { CookieName, cookies, getRandomState, githubRedirectUri } from "~/managers/auth";
+import { CookieName, cookies, getRandomState } from "~/managers/auth";
 import { decodeMagicLinkState, generateMagicLinkUrl, verifyMagicLinkCode } from "~/managers/magic-link";
-import githubOAuth from "~/services/github";
+import githubOAuth, { githubRedirectUri } from "~/services/github";
+import googleOAuth, { googleRedirectUri } from "~/services/google";
 import resend from "~/services/resend";
 import stripe from "~/services/stripe";
 import { AuthPage } from "~/views/auth";
@@ -20,7 +21,7 @@ const paths = {
   signIn: (error?: string) => error ? `/auth?error=${encodeURIComponent(error)}` : `/auth`,
   signOut: "/auth/signout",
   githubStart: "/auth/github/start",
-  githubCallback: (code: string, state: string) => `/auth/github/callback?${new URLSearchParams({ code, state }).toString()}`,
+  googleStart: "/auth/google/start",
   manage: "/manage",
 } as const;
 
@@ -28,7 +29,9 @@ export enum ErrorCode {
   InvalidState = "Invalid OAuth state parameter",
   InvalidRequest = "Invalid request parameters",
   GithubError = "GitHub raised an error",
+  GoogleError = "Google raised an error",
   NoEmail = "Could not find an email address for you",
+  EmailInvalid = "Invalid email address",
   InvalidMagicLink = "Invalid magic link",
   MagicLinkExpired = "Magic link has expired. Please request a new one.",
 }
@@ -43,7 +46,7 @@ function isAuthenticated(
 export default async function routes(fastify: FastifyInstance) {
   fastify.get("/", async (request, reply) => {
     return reply.html(
-      <IndexPage title="Donate to Noisebridge" isAuthenticated={isAuthenticated(request, reply)} />
+      <IndexPage isAuthenticated={isAuthenticated(request, reply)} />
     );
   });
 
@@ -51,7 +54,12 @@ export default async function routes(fastify: FastifyInstance) {
     Querystring: { error?: string };
   }>("/auth", async (request, reply) => {
     const error = request.query.error;
-    return reply.html(<AuthPage title="Sign In" isAuthenticated={isAuthenticated(request, reply)} error={error} />);
+    return reply.html(
+      <AuthPage
+        isAuthenticated={isAuthenticated(request, reply)}
+        error={error}
+      />
+    );
   });
 
   fastify.get("/auth/github/start", async (request, reply) => {
@@ -108,6 +116,64 @@ export default async function routes(fastify: FastifyInstance) {
     return reply.redirect(paths.manage);
   });
 
+  fastify.get("/auth/google/start", async (request, reply) => {
+    const state = getRandomState();
+    const googleCookie = cookies[CookieName.GoogleOAuthState](request, reply);
+    googleCookie.value = { state };
+
+    const authUrl = googleOAuth.getAuthorizationUrl(
+      googleRedirectUri,
+      state,
+      ["openid", "https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile"]
+    );
+    return reply.redirect(authUrl);
+  });
+
+  fastify.get<{
+    Querystring: { code?: string; state?: string; error?: string };
+  }>("/auth/google/callback", async (request, reply) => {
+    if (request.query.error) {
+      fastify.log.warn({ error: request.query.error }, "Google OAuth error");
+      return reply.redirect(paths.signIn(ErrorCode.GoogleError));
+    }
+
+    const { code, state } = request.query;
+    if (!code || !state) {
+      fastify.log.warn("Missing code or state parameter in Google callback");
+      return reply.redirect(paths.signIn(ErrorCode.InvalidRequest));
+    }
+
+    const googleCookie = cookies[CookieName.GoogleOAuthState](request, reply);
+    const cookieValue = googleCookie.value;
+    if (cookieValue?.state !== state) {
+      fastify.log.warn("Invalid or mismatched state parameter for Google OAuth");
+      return reply.redirect(paths.signIn(ErrorCode.InvalidState));
+    }
+
+    const { userInfo } = await googleOAuth.completeOAuthFlow(
+      code,
+      googleRedirectUri,
+    );
+
+    if (!userInfo.email || !userInfo.verified_email) {
+      fastify.log.warn(
+        { userId: userInfo.id },
+        "No verified email found for Google user",
+      );
+      return reply.redirect(paths.signIn(ErrorCode.NoEmail));
+    }
+
+    const sessionCookie = cookies[CookieName.UserSession](request, reply);
+    sessionCookie.value = { email: userInfo.email, provider: "google" };
+
+    fastify.log.info(
+      { userId: userInfo.id, email: userInfo.email },
+      "User authenticated via Google",
+    );
+
+    return reply.redirect(paths.manage);
+  });
+
   fastify.post<{
     Body: { email?: string };
   }>("/auth/email", async (request, reply) => {
@@ -121,7 +187,7 @@ export default async function routes(fastify: FastifyInstance) {
     // Basic email validation
     if (!email.includes("@") || email.length < 5) {
       fastify.log.warn({ email }, "Invalid email format");
-      return reply.redirect(paths.signIn("Invalid email address"));
+      return reply.redirect(paths.signIn(ErrorCode.EmailInvalid));
     }
 
     const magicLinkUrl = generateMagicLinkUrl(email);
@@ -152,7 +218,6 @@ export default async function routes(fastify: FastifyInstance) {
 
     return reply.html(
       <AuthEmailPage
-        title="Check Your Email"
         email={email}
         isAuthenticated={isAuthenticated(request, reply)}
       />
@@ -222,10 +287,7 @@ export default async function routes(fastify: FastifyInstance) {
     }
 
     return reply.html(
-      <ManagePage
-        title="Manage Donation"
-        stripeCustomer={stripeCustomer}
-      />,
+      <ManagePage stripeCustomer={stripeCustomer} />,
     );
   });
 }

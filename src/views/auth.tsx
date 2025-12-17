@@ -3,15 +3,14 @@ import Html from "@kitajs/html";
 import { Layout } from "~/components/layout";
 
 export interface AuthProps {
-  title: string;
   isAuthenticated: boolean;
   error?: string | undefined;
 }
 
-export function AuthPage({ title, isAuthenticated, error }: AuthProps) {
+export function AuthPage({ isAuthenticated, error }: AuthProps) {
   return (
     <Layout
-      title={title}
+      title="Sign In"
       styles="auth.css"
       isAuthenticated={isAuthenticated}
     >

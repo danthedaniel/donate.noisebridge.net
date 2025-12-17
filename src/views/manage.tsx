@@ -4,16 +4,12 @@ import type Stripe from "stripe";
 import { Layout } from "~/components/layout";
 
 export interface ManageProps {
-  title: string;
   stripeCustomer: Stripe.Customer | undefined;
 }
 
-export function ManagePage({
-  title,
-  stripeCustomer,
-}: ManageProps) {
+export function ManagePage({ stripeCustomer }: ManageProps) {
   return (
-    <Layout title={title} styles="manage.css" isAuthenticated={true}>
+    <Layout title="Manage your Donation" styles="manage.css" isAuthenticated={true}>
       <section class="manage-container">
         <div class="manage-header">
           <h1>Manage Your Donation</h1>

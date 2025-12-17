@@ -3,15 +3,14 @@ import Html from "@kitajs/html";
 import { Layout } from "~/components/layout";
 
 export interface AuthEmailProps {
-  title: string;
   email: string;
   isAuthenticated: boolean;
 }
 
-export function AuthEmailPage({ title, email, isAuthenticated }: AuthEmailProps) {
+export function AuthEmailPage({ email, isAuthenticated }: AuthEmailProps) {
   return (
     <Layout
-      title={title}
+      title="Check Your Email"
       styles="auth-email.css"
       isAuthenticated={isAuthenticated}
     >

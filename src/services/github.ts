@@ -1,5 +1,12 @@
 const userAgent = "NoisebridgeDonorPortal";
 
+const serverHost = process.env["SERVER_HOST"];
+if (!serverHost) {
+  throw new Error("SERVER_HOST env var is not set");
+}
+const serverProtocol = process.env.NODE_ENV === "production" ? "https" : "http";
+export const githubRedirectUri = `${serverProtocol}://${serverHost}/auth/github/callback`;
+
 interface GitHubTokenResponse {
   access_token: string;
   token_type: string;
