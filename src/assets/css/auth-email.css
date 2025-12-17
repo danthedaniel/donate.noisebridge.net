@@ -1,0 +1,94 @@
+/* Auth Email Waiting Page Styles */
+
+.email-waiting-container {
+  padding: var(--spacing-xxl) 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 200px);
+}
+
+.email-waiting-card {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: var(--spacing-xxl);
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  text-align: center;
+}
+
+.email-icon-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.email-icon {
+  width: 80px;
+  height: 80px;
+  color: var(--color-primary);
+  opacity: 0.9;
+}
+
+.email-waiting-title {
+  font-family: var(--font-eurostile);
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 var(--spacing-md) 0;
+  color: var(--color-text);
+}
+
+.email-waiting-message {
+  color: var(--color-text);
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0 0 var(--spacing-lg) 0;
+}
+
+.email-waiting-message strong {
+  color: var(--color-primary);
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.email-waiting-expiry {
+  color: var(--color-text-light);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  margin: 0;
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .email-waiting-container {
+    padding: var(--spacing-lg) 0;
+  }
+
+  .email-waiting-card {
+    padding: var(--spacing-xl);
+    border-radius: 8px;
+  }
+
+  .email-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .email-waiting-title {
+    font-size: 1.75rem;
+  }
+
+  .email-waiting-message {
+    font-size: 0.9375rem;
+  }
+
+  .email-waiting-expiry {
+    font-size: 0.875rem;
+  }
+}

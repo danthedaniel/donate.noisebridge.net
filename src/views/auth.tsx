@@ -13,7 +13,6 @@ export function AuthPage({ title, isAuthenticated, error }: AuthProps) {
     <Layout
       title={title}
       styles="auth.css"
-      script="auth.mjs"
       isAuthenticated={isAuthenticated}
     >
       <section class="auth-container">
@@ -27,23 +26,23 @@ export function AuthPage({ title, isAuthenticated, error }: AuthProps) {
           <p class="auth-subtitle">Sign in to manage your monthly donation</p>
 
           <div class="oauth-buttons">
-            <button class="btn btn-oauth btn-github" type="button">
+            <a href="/auth/github/start" class="btn btn-oauth btn-github">
               <img
                 class="oauth-icon"
                 src="/assets/image/github.svg"
                 alt="GitHub Logo"
               />
               Continue with GitHub
-            </button>
+            </a>
 
-            <button class="btn btn-oauth btn-google" type="button">
+            <a href="/auth/google/start" class="btn btn-oauth btn-google">
               <img
                 class="oauth-icon"
                 src="/assets/image/google.svg"
                 alt="Google Logo"
               />
               Continue with Google
-            </button>
+            </a>
           </div>
 
           <div class="divider">
@@ -59,7 +58,7 @@ export function AuthPage({ title, isAuthenticated, error }: AuthProps) {
             <form
               class="magic-link-form"
               method="post"
-              action="/auth/magic-link"
+              action="/auth/email"
             >
               <div class="form-group">
                 <input
@@ -68,6 +67,7 @@ export function AuthPage({ title, isAuthenticated, error }: AuthProps) {
                   name="email"
                   class="form-input"
                   placeholder="you@example.com"
+                  minlength="5"
                   required
                 />
               </div>

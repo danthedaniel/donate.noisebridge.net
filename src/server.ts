@@ -1,6 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import fastifyCookie from "@fastify/cookie";
+import fastifyFormbody from "@fastify/formbody";
 import fastifyStatic from "@fastify/static";
 import html from "@kitajs/fastify-html-plugin";
 import Fastify from "fastify";
@@ -21,6 +22,8 @@ if (!cookieSecret) {
 fastify.register(fastifyCookie, {
   secret: cookieSecret,
 });
+
+fastify.register(fastifyFormbody);
 
 fastify.register(fastifyStatic, {
   root: path.join(__dirname, "assets"),

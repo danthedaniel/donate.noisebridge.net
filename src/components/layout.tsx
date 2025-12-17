@@ -40,7 +40,10 @@ export function Layout({ title, script, styles, isAuthenticated, children }: Lay
                 </div>
                 <div class="navbar-right">
                   {isAuthenticated ? (
-                    <a href="/auth/signout" class="btn-sign-in">Sign Out</a>
+                    <>
+                      <a href="/manage" class="btn-sign-in">Manage</a>
+                      <a href="/auth/signout" class="btn-sign-in">Sign Out</a>
+                    </>
                   ) : (
                     <a href="/auth" class="btn-sign-in">Sign In</a>
                   )}

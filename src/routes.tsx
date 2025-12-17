@@ -4,10 +4,14 @@ import type { FastifyInstance } from "fastify";
 import type { FastifyReply } from "fastify/types/reply";
 import type { FastifyRequest } from "fastify/types/request";
 import type Stripe from "stripe";
+import { magicLinkEmail } from "~/emails/magic-link";
 import { CookieName, cookies, getRandomState, githubRedirectUri } from "~/managers/auth";
+import { decodeMagicLinkState, generateMagicLinkUrl, verifyMagicLinkCode } from "~/managers/magic-link";
 import githubOAuth from "~/services/github";
+import resend from "~/services/resend";
 import stripe from "~/services/stripe";
 import { AuthPage } from "~/views/auth";
+import { AuthEmailPage } from "~/views/auth-email";
 import { IndexPage } from "~/views/index";
 import { ManagePage } from "~/views/manage";
 
@@ -25,6 +29,8 @@ export enum ErrorCode {
   InvalidRequest = "Invalid request parameters",
   GithubError = "GitHub raised an error",
   NoEmail = "Could not find an email address for you",
+  InvalidMagicLink = "Invalid magic link",
+  MagicLinkExpired = "Magic link has expired. Please request a new one.",
 }
 
 function isAuthenticated(
@@ -98,6 +104,92 @@ export default async function routes(fastify: FastifyInstance) {
       { userId: user.id, login: user.login, email },
       "User authenticated via GitHub",
     );
+
+    return reply.redirect(paths.manage);
+  });
+
+  fastify.post<{
+    Body: { email?: string };
+  }>("/auth/email", async (request, reply) => {
+    const email = request.body?.email?.trim();
+
+    if (!email) {
+      fastify.log.warn("Missing email in POST /auth/email");
+      return reply.redirect(paths.signIn(ErrorCode.InvalidRequest));
+    }
+
+    // Basic email validation
+    if (!email.includes("@") || email.length < 5) {
+      fastify.log.warn({ email }, "Invalid email format");
+      return reply.redirect(paths.signIn("Invalid email address"));
+    }
+
+    const magicLinkUrl = generateMagicLinkUrl(email);
+    const emailHtml = magicLinkEmail({
+      email,
+      magicLinkUrl,
+    });
+    const response = await resend.emails.send({
+      from: "Noisebridge <onboarding@resend.dev>",
+      to: [email],
+      subject: "Sign in to donate.noisebridge.net",
+      html: emailHtml,
+    });
+    request.log.info(response);
+    fastify.log.info({ email }, "Magic link email sent");
+
+    return reply.redirect(`/auth/email?email=${encodeURIComponent(email)}`);
+  });
+
+  fastify.get<{
+    Querystring: { email?: string };
+  }>("/auth/email", async (request, reply) => {
+    const email = request.query.email;
+    if (!email) {
+      fastify.log.warn("Missing email parameter in /auth/email");
+      return reply.redirect(paths.signIn(ErrorCode.InvalidRequest));
+    }
+
+    return reply.html(
+      <AuthEmailPage
+        title="Check Your Email"
+        email={email}
+        isAuthenticated={isAuthenticated(request, reply)}
+      />
+    );
+  });
+
+  fastify.get<{
+    Querystring: { state?: string };
+  }>("/auth/magic-link/callback", async (request, reply) => {
+    const { state } = request.query;
+
+    if (!state) {
+      fastify.log.warn("Missing state parameter in magic link callback");
+      return reply.redirect(paths.signIn(ErrorCode.InvalidRequest));
+    }
+
+    // Decode the state parameter
+    const magicLinkState = decodeMagicLinkState(state);
+    if (!magicLinkState) {
+      fastify.log.warn("Invalid state parameter in magic link callback");
+      return reply.redirect(paths.signIn(ErrorCode.InvalidMagicLink));
+    }
+
+    const { email, code } = magicLinkState;
+
+    // Verify the HMAC code (checks current, 1 past, and 1 future time window)
+    const isValid = verifyMagicLinkCode(email, code);
+    if (!isValid) {
+      fastify.log.warn({ email }, "Invalid or expired magic link code");
+      return reply.redirect(paths.signIn(ErrorCode.MagicLinkExpired));
+    }
+
+    // Code is valid - create session
+    const sessionCookie = cookies[CookieName.UserSession](request, reply);
+    sessionCookie.value = { email, provider: "magic_link" };
+
+    fastify.log.info({ email }, "User authenticated via magic link");
 
     return reply.redirect(paths.manage);
   });

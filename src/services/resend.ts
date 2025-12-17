@@ -5,6 +5,6 @@ if (!apiKey) {
   throw new Error("RESEND_KEY env var is not set");
 }
 
-const resend = new Resend('re_xxxxxxxxx');
+const resend = new Resend(apiKey);
 
 export default resend;
