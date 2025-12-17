@@ -1,15 +1,13 @@
 // biome-ignore lint/correctness/noUnusedImports: Html is used by JSX
 import Html from "@kitajs/html";
-import type { FastifyInstance } from "fastify";
-import type { FastifyReply } from "fastify/types/reply";
-import type { FastifyRequest } from "fastify/types/request";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type Stripe from "stripe";
 import config from "~/config";
 import { magicLinkEmail } from "~/emails/magic-link";
 import { CookieName, cookies, getRandomState } from "~/managers/auth";
 import magicLinkManager from "~/managers/magic-link";
-import githubOAuth, { githubRedirectUri } from "~/services/github";
-import googleOAuth, { googleRedirectUri } from "~/services/google";
+import githubOAuth from "~/services/github";
+import googleOAuth from "~/services/google";
 import resend from "~/services/resend";
 import stripe from "~/services/stripe";
 import { AuthPage } from "~/views/auth";
@@ -19,12 +17,15 @@ import { ManagePage } from "~/views/manage";
 import { ThankYouPage } from "~/views/thank-you";
 
 const paths = {
-  index: (error?: string) => error ? `/?error=${encodeURIComponent(error)}` : `/`,
-  signIn: (error?: string) => error ? `/auth?error=${encodeURIComponent(error)}` : `/auth`,
+  index: (error?: string) =>
+    error ? `/?error=${encodeURIComponent(error)}` : `/`,
+  signIn: (error?: string) =>
+    error ? `/auth?error=${encodeURIComponent(error)}` : `/auth`,
   signOut: "/auth/signout",
   githubStart: "/auth/github/start",
   googleStart: "/auth/google/start",
-  manage: "/manage",
+  manage: (error?: string) =>
+    error ? `/manage?error=${encodeURIComponent(error)}` : `/manage`,
 } as const;
 
 export enum ErrorCode {
@@ -38,6 +39,11 @@ export enum ErrorCode {
   MagicLinkExpired = "Magic link has expired. Please request a new one.",
   InvalidDonationAmount = "Please select a valid donation amount",
   StripeSessionError = "Unable to process donation. Please try again.",
+  InvalidMonthlyDonationAmount = "Please select a valid donation amount",
+  SameMontlyDonationAmount = "Select a different donation amount",
+  DonationCreateError = "Unable to create monthly donation. Please try again.",
+  DonationCancelError = "Unable to cancel monthly donation. Please try again.",
+  NoActiveDonation = "No active monthly donation found to cancel",
 }
 
 function isAuthenticated(
@@ -58,13 +64,27 @@ function parseDonationAmount(amount?: string) {
   return Math.round(parsed * 100); // Convert to cents
 }
 
+function parseSubscriptionAmount(amount?: string) {
+  const minimumAmount = 5; // dollars per month
+
+  const parsed = Number.parseFloat(amount || "");
+  if (!parsed || parsed < minimumAmount) {
+    return null;
+  }
+
+  return Math.round(parsed * 100); // Convert to cents
+}
+
 export default async function routes(fastify: FastifyInstance) {
   fastify.get<{
     Querystring: { error?: string };
   }>("/", async (request, reply) => {
     const error = request.query.error;
     return reply.html(
-      <IndexPage isAuthenticated={isAuthenticated(request, reply)} error={error} />,
+      <IndexPage
+        isAuthenticated={isAuthenticated(request, reply)}
+        error={error}
+      />,
     );
   });
 
@@ -76,7 +96,7 @@ export default async function routes(fastify: FastifyInstance) {
       <AuthPage
         isAuthenticated={isAuthenticated(request, reply)}
         error={error}
-      />
+      />,
     );
   });
 
@@ -85,7 +105,7 @@ export default async function routes(fastify: FastifyInstance) {
     const githubCookie = cookies[CookieName.GithubOAuthState](request, reply);
     githubCookie.value = { state };
 
-    const authUrl = githubOAuth.getAuthorizationUrl(githubRedirectUri, state, ["user:email"]);
+    const authUrl = githubOAuth.getAuthorizationUrl(state, ["user:email"]);
     return reply.redirect(authUrl);
   });
 
@@ -110,10 +130,7 @@ export default async function routes(fastify: FastifyInstance) {
       return reply.redirect(paths.signIn(ErrorCode.InvalidState));
     }
 
-    const { user, primaryEmail } = await githubOAuth.completeOAuthFlow(
-      code,
-      githubRedirectUri,
-    );
+    const { user, primaryEmail } = await githubOAuth.completeOAuthFlow(code);
     const email = primaryEmail || user.email;
     if (!email) {
       fastify.log.warn(
@@ -131,7 +148,7 @@ export default async function routes(fastify: FastifyInstance) {
       "User authenticated via GitHub",
     );
 
-    return reply.redirect(paths.manage);
+    return reply.redirect(paths.manage());
   });
 
   fastify.get("/auth/google/start", async (request, reply) => {
@@ -139,11 +156,11 @@ export default async function routes(fastify: FastifyInstance) {
     const googleCookie = cookies[CookieName.GoogleOAuthState](request, reply);
     googleCookie.value = { state };
 
-    const authUrl = googleOAuth.getAuthorizationUrl(
-      googleRedirectUri,
-      state,
-      ["openid", "https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile"]
-    );
+    const authUrl = googleOAuth.getAuthorizationUrl(state, [
+      "openid",
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile",
+    ]);
     return reply.redirect(authUrl);
   });
 
@@ -164,15 +181,13 @@ export default async function routes(fastify: FastifyInstance) {
     const googleCookie = cookies[CookieName.GoogleOAuthState](request, reply);
     const cookieValue = googleCookie.value;
     if (cookieValue?.state !== state) {
-      fastify.log.warn("Invalid or mismatched state parameter for Google OAuth");
+      fastify.log.warn(
+        "Invalid or mismatched state parameter for Google OAuth",
+      );
       return reply.redirect(paths.signIn(ErrorCode.InvalidState));
     }
 
-    const { userInfo } = await googleOAuth.completeOAuthFlow(
-      code,
-      googleRedirectUri,
-    );
-
+    const { userInfo } = await googleOAuth.completeOAuthFlow(code);
     if (!userInfo.email || !userInfo.verified_email) {
       fastify.log.warn(
         { userId: userInfo.id },
@@ -189,7 +204,7 @@ export default async function routes(fastify: FastifyInstance) {
       "User authenticated via Google",
     );
 
-    return reply.redirect(paths.manage);
+    return reply.redirect(paths.manage());
   });
 
   fastify.post<{
@@ -238,7 +253,7 @@ export default async function routes(fastify: FastifyInstance) {
       <AuthEmailPage
         email={email}
         isAuthenticated={isAuthenticated(request, reply)}
-      />
+      />,
     );
   });
 
@@ -274,7 +289,7 @@ export default async function routes(fastify: FastifyInstance) {
 
     fastify.log.info({ email }, "User authenticated via magic link");
 
-    return reply.redirect(paths.manage);
+    return reply.redirect(paths.manage());
   });
 
   fastify.get("/auth/signout", async (request, reply) => {
@@ -284,7 +299,9 @@ export default async function routes(fastify: FastifyInstance) {
     return reply.redirect(paths.index());
   });
 
-  fastify.get("/manage", async (request, reply) => {
+  fastify.get<{
+    Querystring: { error?: string };
+  }>("/manage", async (request, reply) => {
     const sessionCookie = cookies[CookieName.UserSession](request, reply);
     const sessionData = sessionCookie.value;
     if (!sessionData) {
@@ -294,18 +311,50 @@ export default async function routes(fastify: FastifyInstance) {
     }
 
     let stripeCustomer: Stripe.Customer | undefined;
+    let stripeSubscription: Stripe.Subscription | undefined;
+
     try {
       const customers = await stripe.customers.list({
         email: sessionData.email,
         limit: 1,
       });
       stripeCustomer = customers.data[0];
+
+      if (stripeCustomer) {
+        const subscriptions = await stripe.subscriptions.list({
+          customer: stripeCustomer.id,
+          status: "active",
+          limit: 1,
+        });
+
+        if (subscriptions.data.length > 0) {
+          stripeSubscription = subscriptions.data[0];
+
+          if (subscriptions.data.length > 1) {
+            fastify.log.warn(
+              {
+                customerId: stripeCustomer.id,
+                count: subscriptions.data.length,
+              },
+              "Customer has multiple active subscriptions, using first",
+            );
+          }
+        }
+      }
     } catch (error) {
-      fastify.log.error(error, "Error fetching Stripe customer data");
+      fastify.log.error(
+        error,
+        "Error fetching Stripe customer/subscription data",
+      );
     }
 
+    const error = request.query.error;
     return reply.html(
-      <ManagePage customer={stripeCustomer} />,
+      <ManagePage
+        customer={stripeCustomer}
+        subscription={stripeSubscription}
+        error={error}
+      />,
     );
   });
 
@@ -314,7 +363,9 @@ export default async function routes(fastify: FastifyInstance) {
   }>("/donate", async (request, reply) => {
     const { amount, "custom-amount": customAmount } = request.body || {};
 
-    const amountCents = parseDonationAmount(amount === "custom" ? customAmount : amount);
+    const amountCents = parseDonationAmount(
+      amount === "custom" ? customAmount : amount,
+    );
     if (amountCents === null) {
       reply.redirect(paths.index(ErrorCode.InvalidDonationAmount));
       return;
@@ -354,9 +405,216 @@ export default async function routes(fastify: FastifyInstance) {
     return reply.redirect(session.url);
   });
 
+  fastify.post<{
+    Body: { tier?: string; customAmount?: string };
+  }>("/subscribe", async (request, reply) => {
+    const sessionCookie = cookies[CookieName.UserSession](request, reply);
+    const sessionData = sessionCookie.value;
+    if (!sessionData) {
+      fastify.log.warn("Unauthenticated subscription attempt");
+      return reply.redirect(paths.signIn());
+    }
+
+    const { tier, customAmount } = request.body || {};
+    const amountCents = parseSubscriptionAmount(
+      tier === "custom" ? customAmount : tier,
+    );
+
+    if (amountCents === null) {
+      fastify.log.warn(
+        { tier, customAmount, email: sessionData.email },
+        "Invalid subscription amount",
+      );
+      return reply.redirect(
+        paths.manage(ErrorCode.InvalidMonthlyDonationAmount),
+      );
+    }
+
+    try {
+      let customerId: string | undefined;
+      let existingSubscription: Stripe.Subscription | undefined;
+
+      const customers = await stripe.customers.list({
+        email: sessionData.email,
+        limit: 1,
+      });
+
+      if (customers.data.length > 0) {
+        const customer = customers.data[0];
+        if (customer) {
+          customerId = customer.id;
+
+          // Check if customer has active subscription
+          const subscriptions = await stripe.subscriptions.list({
+            customer: customerId,
+            status: "active",
+            limit: 1,
+          });
+
+          if (subscriptions.data.length > 0) {
+            existingSubscription = subscriptions.data[0];
+          }
+        }
+      }
+
+      if (existingSubscription) {
+        const existingAmount = existingSubscription.items.data[0]?.price?.unit_amount;
+        if (existingAmount === amountCents) {
+          reply.redirect(paths.manage(ErrorCode.SameMontlyDonationAmount));
+          return;
+        }
+
+        await stripe.subscriptions.cancel(existingSubscription.id);
+        fastify.log.info(
+          {
+            subscriptionId: existingSubscription.id,
+            customerId,
+            email: sessionData.email,
+          },
+          "Canceled existing subscription before creating new one",
+        );
+      }
+
+      const sessionConfig: Stripe.Checkout.SessionCreateParams = {
+        mode: "subscription",
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: "Monthly Donation to Noisebridge",
+                description: "Support our hackerspace community",
+              },
+              unit_amount: amountCents,
+              recurring: {
+                interval: "month",
+              },
+            },
+            quantity: 1,
+          },
+        ],
+        success_url: `${request.protocol}://${config.serverHost}/manage`,
+        cancel_url: `${request.protocol}://${config.serverHost}/manage`,
+      };
+
+      // Link to existing customer or let Stripe create one
+      if (customerId) {
+        sessionConfig.customer = customerId;
+      } else {
+        sessionConfig.customer_email = sessionData.email;
+      }
+
+      const session = await stripe.checkout.sessions.create(sessionConfig);
+
+      if (!session.url) {
+        fastify.log.error(
+          "Stripe subscription session created but no URL returned",
+        );
+        return reply.redirect(paths.manage(ErrorCode.DonationCreateError));
+      }
+
+      fastify.log.info(
+        {
+          amount: amountCents,
+          email: sessionData.email,
+          sessionId: session.id,
+          existingSubscription: !!existingSubscription,
+        },
+        "Stripe subscription checkout session created",
+      );
+
+      return reply.redirect(session.url);
+    } catch (error) {
+      fastify.log.error(
+        { error, email: sessionData.email, amount: amountCents },
+        "Error creating subscription checkout session",
+      );
+      return reply.redirect(paths.manage(ErrorCode.DonationCreateError));
+    }
+  });
+
+  fastify.post("/cancel", async (request, reply) => {
+    const sessionCookie = cookies[CookieName.UserSession](request, reply);
+    const sessionData = sessionCookie.value;
+    if (!sessionData) {
+      fastify.log.warn("Unauthenticated cancel attempt");
+      return reply.redirect(paths.signIn());
+    }
+
+    try {
+      const customers = await stripe.customers.list({
+        email: sessionData.email,
+        limit: 1,
+      });
+
+      if (customers.data.length === 0) {
+        fastify.log.warn(
+          { email: sessionData.email },
+          "No Stripe customer found for cancel request",
+        );
+        return reply.redirect(paths.manage(ErrorCode.NoActiveDonation));
+      }
+
+      const customer = customers.data[0];
+      if (!customer) {
+        fastify.log.warn(
+          { email: sessionData.email },
+          "No Stripe customer found for cancel request",
+        );
+        return reply.redirect(paths.manage(ErrorCode.NoActiveDonation));
+      }
+
+      const subscriptions = await stripe.subscriptions.list({
+        customer: customer.id,
+        status: "active",
+        limit: 1,
+      });
+
+      if (subscriptions.data.length === 0) {
+        fastify.log.warn(
+          { customerId: customer.id, email: sessionData.email },
+          "No active subscription found for cancel request",
+        );
+        return reply.redirect(paths.manage(ErrorCode.NoActiveDonation));
+      }
+
+      const subscription = subscriptions.data[0];
+      if (!subscription) {
+        fastify.log.warn(
+          { customerId: customer.id, email: sessionData.email },
+          "No active subscription found for cancel request",
+        );
+        return reply.redirect(paths.manage(ErrorCode.NoActiveDonation));
+      }
+
+      await stripe.subscriptions.cancel(subscription.id, {
+        prorate: true,
+        invoice_now: true,
+      });
+
+      fastify.log.info(
+        {
+          subscriptionId: subscription.id,
+          customerId: customer.id,
+          email: sessionData.email,
+        },
+        "Subscription canceled with prorated refund",
+      );
+
+      return reply.redirect(paths.manage());
+    } catch (error) {
+      fastify.log.error(
+        { error, email: sessionData.email },
+        "Error canceling subscription",
+      );
+      return reply.redirect(paths.manage(ErrorCode.DonationCancelError));
+    }
+  });
+
   fastify.get("/thank-you", async (request, reply) => {
     return reply.html(
-      <ThankYouPage isAuthenticated={isAuthenticated(request, reply)} />
+      <ThankYouPage isAuthenticated={isAuthenticated(request, reply)} />,
     );
   });
 }

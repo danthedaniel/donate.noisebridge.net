@@ -8,7 +8,10 @@ export interface MagicLinkEmailProps {
 /**
  * Generate HTML email for magic link authentication
  */
-export function magicLinkEmail({ email, magicLinkUrl }: MagicLinkEmailProps): string {
+export function magicLinkEmail({
+  email,
+  magicLinkUrl,
+}: MagicLinkEmailProps): string {
   const mjml = `
     <mjml>
       <mj-head>

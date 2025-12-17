@@ -9,11 +9,7 @@ export interface AuthProps {
 
 export function AuthPage({ isAuthenticated, error }: AuthProps) {
   return (
-    <Layout
-      title="Sign In"
-      styles="auth.css"
-      isAuthenticated={isAuthenticated}
-    >
+    <Layout title="Sign In" styles="auth.css" isAuthenticated={isAuthenticated}>
       <section class="auth-container">
         {error && (
           <div class="error-banner" role="alert">
@@ -54,11 +50,7 @@ export function AuthPage({ isAuthenticated, error }: AuthProps) {
               We'll send you a link to sign in
             </p>
 
-            <form
-              class="magic-link-form"
-              method="post"
-              action="/auth/email"
-            >
+            <form class="magic-link-form" method="post" action="/auth/email">
               <div class="form-group">
                 <input
                   type="email"

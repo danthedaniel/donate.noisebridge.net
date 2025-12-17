@@ -26,14 +26,17 @@ export function ThankYouPage({ isAuthenticated }: ThankYouProps) {
           <h1 class="thank-you-title">Thank you for your donation!</h1>
 
           <p class="thank-you-message">
-            Your support helps keep Noisebridge running and accessible to everyone.
+            Your support helps keep Noisebridge running and accessible to
+            everyone.
           </p>
 
           <p class="thank-you-secondary">
             You'll receive a receipt via email shortly.
           </p>
 
-          <a href="/" class="btn btn-primary btn-large">Return to Home</a>
+          <a href="/" class="btn btn-primary btn-large">
+            Return to Home
+          </a>
         </div>
       </section>
     </Layout>

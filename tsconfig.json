@@ -1,9 +1,7 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "lib": [
-      "ESNext"
-    ],
+    "lib": ["ESNext"],
     "allowJs": false,
     "module": "ESNext",
     "jsx": "react",
@@ -13,17 +11,9 @@
     "baseUrl": ".",
     "allowImportingTsExtensions": true,
     "paths": {
-      "~/*": [
-        "./src/*"
-      ]
-    },
+      "~/*": ["./src/*"]
+    }
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules",
-    "src/assets"
-  ]
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "src/assets"]
 }

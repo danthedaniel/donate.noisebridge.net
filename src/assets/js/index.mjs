@@ -1,6 +1,6 @@
 // @ts-check
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   const customAmountInput = /** @type {HTMLInputElement} */ (
     document.getElementById("custom-amount")
   );
@@ -24,7 +24,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const customValue = parseFloat(customAmountInput.value);
       donateButton.disabled = !customValue || customValue <= 0;
     } else {
-      const anySelected = Array.from(amountRadios).some(radio => radio.checked);
+      const anySelected = Array.from(amountRadios).some(
+        (radio) => radio.checked,
+      );
       donateButton.disabled = !anySelected;
     }
   }

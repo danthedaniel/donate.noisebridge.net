@@ -1,15 +1,15 @@
 /* Fonts */
 @font-face {
-  font-family: 'Eurostile';
-  src: url('/assets/font/eurostile/eurostile.woff2') format('woff2');
+  font-family: "Eurostile";
+  src: url("/assets/font/eurostile/eurostile.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Eurostile';
-  src: url('/assets/font/eurostile/eurostile-bold.woff2') format('woff2');
+  font-family: "Eurostile";
+  src: url("/assets/font/eurostile/eurostile-bold.woff2") format("woff2");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -24,8 +24,10 @@
   --color-border: #e5e5e5;
   --color-border-light: #f0f0f0;
 
-  --font-eurostile: 'Eurostile', sans-serif;
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-eurostile: "Eurostile", sans-serif;
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
 
   --spacing-xs: 0.5rem;
   --spacing-sm: 1rem;
@@ -125,7 +127,6 @@ body {
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(204, 51, 51, 0.2);
 }
-
 
 /* Error Banner */
 .error-banner {

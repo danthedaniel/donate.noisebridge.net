@@ -1,6 +1,6 @@
 // @ts-check
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   const customAmountInput = /** @type {HTMLInputElement} */ (
     document.querySelector(".custom-amount-input")
   );

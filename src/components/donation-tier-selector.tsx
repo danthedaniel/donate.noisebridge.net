@@ -18,10 +18,7 @@ interface DonationTierSelectorProps {
   subscription?: Stripe.Subscription | undefined;
 }
 
-function tierChecked(
-  tier: Tier,
-  existingAmount: number | null,
-): boolean {
+function tierChecked(tier: Tier, existingAmount: number | null): boolean {
   if (!existingAmount) {
     return tier.id === "employed";
   }
@@ -29,15 +26,39 @@ function tierChecked(
   return tier.amount === existingAmount / 100;
 }
 
-export function DonationTierSelector({ subscription }: DonationTierSelectorProps) {
-  const existingAmount = subscription?.items?.data[0]?.price?.unit_amount ?? null;
-  const tiers = TIERS.map(tier => ({ ...tier, checked: tierChecked(tier, existingAmount) }));
+function subscriptionRenewalDate(
+  subscription?: Stripe.Subscription,
+) {
+  if (!subscription) {
+    return null;
+  }
+
+  const item = subscription.items.data[0];
+  if (!item) {
+    return null;
+  }
+
+  return new Date(item.current_period_end * 1000);
+}
+
+export function DonationTierSelector({
+  subscription,
+}: DonationTierSelectorProps) {
+  const existingAmount =
+    subscription?.items?.data[0]?.price?.unit_amount ?? null;
+  const tiers = TIERS.map((tier) => ({
+    ...tier,
+    checked: tierChecked(tier, existingAmount),
+  }));
   const hasCustomAmount = tiers.find((tier) => tier.checked) === undefined;
+  const renewalDate = subscriptionRenewalDate(subscription)?.toLocaleDateString() ?? "unknown";
 
   return (
     <form method="POST" action="/subscribe" class="donation-tier-form">
       <p class="form-description">
-        Choose a monthly donation tier to support Noisebridge
+        {subscription
+          ? `Your monthly donation renews on ${renewalDate}`
+          : "Choose a monthly donation tier to support Noisebridge"}
       </p>
 
       <div class="tier-options">
@@ -86,7 +107,11 @@ export function DonationTierSelector({ subscription }: DonationTierSelectorProps
                 step="1"
                 class="custom-input"
                 placeholder="0.00"
-                value={hasCustomAmount ? ((existingAmount ?? 0) / 100).toFixed(2) : undefined}
+                value={
+                  hasCustomAmount
+                    ? ((existingAmount ?? 0) / 100).toFixed(2)
+                    : undefined
+                }
               />
               <span class="period">/month</span>
             </div>
@@ -98,8 +123,8 @@ export function DonationTierSelector({ subscription }: DonationTierSelectorProps
       </div>
 
       <button type="submit" class="btn btn-primary btn-large">
-        {subscription ? "Update Montly Donation" : "Start Monthly Donation"}
+        {subscription ? "Update Monthly Donation" : "Start Monthly Donation"}
       </button>
-    </form>
+    </form >
   );
 }

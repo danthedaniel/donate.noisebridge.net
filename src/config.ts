@@ -9,6 +9,7 @@ function assertEnvVar(key: string) {
 
 export default {
   production: process.env.NODE_ENV === "production",
+  serverProtocol: process.env.NODE_ENV === "production" ? "https" : "http",
   serverHost: assertEnvVar("SERVER_HOST"),
   stripeSecretKey: assertEnvVar("STRIPE_SECRET"),
   githubClientId: assertEnvVar("GITHUB_CLIENT_ID"),

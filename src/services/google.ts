@@ -2,9 +2,6 @@ import config from "~/config";
 
 const userAgent = "NoisebridgeDonorPortal";
 
-const serverProtocol = config.production ? "https" : "http";
-export const googleRedirectUri = `${serverProtocol}://${config.serverHost}/auth/google/callback`;
-
 interface GoogleTokenResponse {
   access_token: string;
   token_type: string;
@@ -28,20 +25,18 @@ interface GoogleUserInfo {
  * GoogleOAuth service for handling Google OAuth 2.0 authentication
  */
 export class GoogleOAuth {
+  static redirectUri =
+    `${config.serverProtocol}://${config.serverHost}/auth/google/callback`;
+
   /**
    * Build the Google OAuth authorization URL
-   * @param redirectUri - The URI to redirect to after authorization
    * @param state - CSRF protection state parameter
    * @param scopes - Array of OAuth scopes to request
    */
-  getAuthorizationUrl(
-    redirectUri: string,
-    state: string,
-    scopes: string[]
-  ): string {
+  getAuthorizationUrl(state: string, scopes: string[]): string {
     const params = new URLSearchParams({
       client_id: config.googleClientId,
-      redirect_uri: redirectUri,
+      redirect_uri: GoogleOAuth.redirectUri,
       response_type: "code",
       scope: scopes.join(" "),
       state: state,
@@ -55,9 +50,8 @@ export class GoogleOAuth {
   /**
    * Exchange an authorization code for an access token
    * @param code - The authorization code from Google
-   * @param redirectUri - The same redirect URI used in the authorization request
    */
-  async getAccessToken(code: string, redirectUri: string): Promise<string> {
+  async getAccessToken(code: string): Promise<string> {
     const response = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: {
@@ -68,13 +62,15 @@ export class GoogleOAuth {
         client_id: config.googleClientId,
         client_secret: config.googleSecret,
         code: code,
-        redirect_uri: redirectUri,
+        redirect_uri: GoogleOAuth.redirectUri,
         grant_type: "authorization_code",
       }),
     });
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Failed to get access token: ${response.statusText} - ${errorText}`);
+      throw new Error(
+        `Failed to get access token: ${response.statusText} - ${errorText}`,
+      );
     }
 
     const data = (await response.json()) as GoogleTokenResponse;
@@ -90,15 +86,20 @@ export class GoogleOAuth {
    * @param accessToken - The Google access token
    */
   async getUserInfo(accessToken: string): Promise<GoogleUserInfo> {
-    const response = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "User-Agent": userAgent,
+    const response = await fetch(
+      "https://www.googleapis.com/oauth2/v2/userinfo",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "User-Agent": userAgent,
+        },
       },
-    });
+    );
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Failed to get user info: ${response.statusText} - ${errorText}`);
+      throw new Error(
+        `Failed to get user info: ${response.statusText} - ${errorText}`,
+      );
     }
 
     return (await response.json()) as GoogleUserInfo;
@@ -107,17 +108,13 @@ export class GoogleOAuth {
   /**
    * Complete OAuth flow: exchange code for token and get user info
    * @param code - The authorization code from Google
-   * @param redirectUri - The redirect URI used in the authorization request
    * @returns Object containing access token and user info
    */
-  async completeOAuthFlow(
-    code: string,
-    redirectUri: string
-  ): Promise<{
+  async completeOAuthFlow(code: string): Promise<{
     accessToken: string;
     userInfo: GoogleUserInfo;
   }> {
-    const accessToken = await this.getAccessToken(code, redirectUri);
+    const accessToken = await this.getAccessToken(code);
     const userInfo = await this.getUserInfo(accessToken);
 
     return {

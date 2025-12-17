@@ -7,22 +7,38 @@ import { Layout } from "~/components/layout";
 export interface ManageProps {
   customer?: Stripe.Customer | undefined;
   subscription?: Stripe.Subscription | undefined;
+  error?: string | undefined;
 }
 
-export function ManagePage({ customer, subscription }: ManageProps) {
+export function ManagePage({ customer, subscription, error }: ManageProps) {
   return (
-    <Layout title="Manage your Donation" styles="manage.css" script="manage.mjs" isAuthenticated={true}>
+    <Layout
+      title="Manage your Donation"
+      styles="manage.css"
+      script="manage.mjs"
+      isAuthenticated={true}
+    >
       <section class="manage-container">
         <div class="manage-header">
           <h1>{customer ? "Manage your Donation" : "Start a Donation"}</h1>
+          {error && (
+            <div class="error-banner" role="alert">
+              <span class="error-message">{error}</span>
+            </div>
+          )}
         </div>
 
         <DonationTierSelector subscription={subscription} />
 
         {subscription && (
-          <form method="POST" action="/cancel" class="card cancel-subscription-form">
+          <form
+            method="POST"
+            action="/cancel"
+            class="card cancel-subscription-form"
+          >
             <p class="form-description">
-              Or, if you want to cancel your subscription, click the button below.
+              Or, if you want to cancel your monthly donation, click the button
+              below.
             </p>
 
             <button type="submit" class="btn btn-secondary btn-large">

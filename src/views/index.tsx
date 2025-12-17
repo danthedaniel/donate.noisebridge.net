@@ -9,10 +9,18 @@ export interface IndexProps {
 
 export function IndexPage({ isAuthenticated, error }: IndexProps) {
   return (
-    <Layout title="Donate to Noisebridge!" script="index.mjs" styles="index.css" isAuthenticated={isAuthenticated}>
+    <Layout
+      title="Donate to Noisebridge!"
+      script="index.mjs"
+      styles="index.css"
+      isAuthenticated={isAuthenticated}
+    >
       <section class="hero">
         <h1>Support Noisebridge</h1>
-        <p>All donations are tax-deductible. Noisebridge is a 501(c)(3) non-profit.</p>
+        <p>
+          All donations are tax-deductible. Noisebridge is a 501(c)(3)
+          non-profit.
+        </p>
       </section>
 
       {error && (
@@ -25,11 +33,17 @@ export function IndexPage({ isAuthenticated, error }: IndexProps) {
         <div class="card membership-cta">
           <h2>Monthly Donation</h2>
           <p>
-            Help keep our hackerspace running and accessible to everyone. Your contribution supports workshops,
-            equipment, and a vibrant community of makers, thinkers, and tinkerers.
+            Help keep our hackerspace running and accessible to everyone. Your
+            contribution supports workshops, equipment, and a vibrant community
+            of makers, thinkers, and tinkerers.
           </p>
-          <a class="btn btn-primary btn-large" href={isAuthenticated ? "/manage" : "/auth"}>
-            {isAuthenticated ? "Manage Your Donation" : "Start Membership Donation"}
+          <a
+            class="btn btn-primary btn-large"
+            href={isAuthenticated ? "/manage" : "/auth"}
+          >
+            {isAuthenticated
+              ? "Manage Your Donation"
+              : "Start Membership Donation"}
           </a>
         </div>
 
@@ -40,22 +54,39 @@ export function IndexPage({ isAuthenticated, error }: IndexProps) {
           <form method="POST" action="/donate">
             <div class="amount-buttons">
               <input type="radio" id="amount-10" name="amount" value="10" />
-              <label for="amount-10" class="btn btn-amount">$10</label>
+              <label for="amount-10" class="btn btn-amount">
+                $10
+              </label>
 
               <input type="radio" id="amount-20" name="amount" value="20" />
-              <label for="amount-20" class="btn btn-amount">$20</label>
+              <label for="amount-20" class="btn btn-amount">
+                $20
+              </label>
 
               <input type="radio" id="amount-40" name="amount" value="40" />
-              <label for="amount-40" class="btn btn-amount">$40</label>
+              <label for="amount-40" class="btn btn-amount">
+                $40
+              </label>
 
               <input type="radio" id="amount-80" name="amount" value="80" />
-              <label for="amount-80" class="btn btn-amount">$80</label>
+              <label for="amount-80" class="btn btn-amount">
+                $80
+              </label>
 
               <input type="radio" id="amount-160" name="amount" value="160" />
-              <label for="amount-160" class="btn btn-amount">$160</label>
+              <label for="amount-160" class="btn btn-amount">
+                $160
+              </label>
 
-              <input type="radio" id="amount-custom" name="amount" value="custom" />
-              <label for="amount-custom" class="btn btn-amount">Custom</label>
+              <input
+                type="radio"
+                id="amount-custom"
+                name="amount"
+                value="custom"
+              />
+              <label for="amount-custom" class="btn btn-amount">
+                Custom
+              </label>
             </div>
 
             <div class="custom-amount">
@@ -73,7 +104,9 @@ export function IndexPage({ isAuthenticated, error }: IndexProps) {
               </div>
             </div>
 
-            <button class="btn btn-secondary btn-large" type="submit">Donate Now</button>
+            <button class="btn btn-secondary btn-large" type="submit">
+              Donate Now
+            </button>
           </form>
         </div>
       </section>

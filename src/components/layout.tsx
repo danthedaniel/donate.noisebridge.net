@@ -9,7 +9,13 @@ export type LayoutProps = PropsWithChildren<{
   isAuthenticated: boolean;
 }>;
 
-export function Layout({ title, script, styles, isAuthenticated, children }: LayoutProps) {
+export function Layout({
+  title,
+  script,
+  styles,
+  isAuthenticated,
+  children,
+}: LayoutProps) {
   return (
     <>
       {"<!DOCTYPE html>"}
@@ -26,7 +32,9 @@ export function Layout({ title, script, styles, isAuthenticated, children }: Lay
           <link rel="stylesheet" href="/assets/css/main.css" />
           <script type="module" src="/assets/js/main.mjs"></script>
           {styles && <link rel="stylesheet" href={`/assets/css/${styles}`} />}
-          {script && <script type="module" src={`/assets/js/${script}`}></script>}
+          {script && (
+            <script type="module" src={`/assets/js/${script}`}></script>
+          )}
         </head>
         <body>
           <nav class="navbar">
@@ -34,31 +42,41 @@ export function Layout({ title, script, styles, isAuthenticated, children }: Lay
               <div class="navbar-content">
                 <div class="navbar-left">
                   <a href="/" class="navbar-brand">
-                    <img src="/assets/image/logo.svg" alt="Noisebridge" class="logo" />
+                    <img
+                      src="/assets/image/logo.svg"
+                      alt="Noisebridge"
+                      class="logo"
+                    />
                     <span class="site-title">Noisebridge Hacker Space</span>
                   </a>
                 </div>
                 <div class="navbar-right">
                   {isAuthenticated ? (
                     <>
-                      <a href="/manage" class="btn-sign-in">Manage</a>
-                      <a href="/auth/signout" class="btn-sign-in">Sign Out</a>
+                      <a href="/manage" class="btn-sign-in">
+                        Manage
+                      </a>
+                      <a href="/auth/signout" class="btn-sign-in">
+                        Sign Out
+                      </a>
                     </>
                   ) : (
-                    <a href="/auth" class="btn-sign-in">Sign In</a>
+                    <a href="/auth" class="btn-sign-in">
+                      Sign In
+                    </a>
                   )}
                 </div>
               </div>
             </div>
           </nav>
           <main class="main-content">
-            <div class="container">
-              {children}
-            </div>
+            <div class="container">{children}</div>
           </main>
           <footer class="footer">
             <div class="container">
-              <p class="footer-text">Noisebridge is a 501(c)(3) non-profit. Our EIN is 26-3507741</p>
+              <p class="footer-text">
+                Noisebridge is a 501(c)(3) non-profit. Our EIN is 26-3507741
+              </p>
             </div>
           </footer>
         </body>
