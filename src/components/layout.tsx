@@ -26,11 +26,10 @@ export function Layout({
             name="viewport"
             content="width=device-width, initial-scale=1.0"
           />
-          <title>{title}</title>
+          <title>{title} | Noisebridge</title>
           <link rel="icon" href="/assets/image/favicon.svg" />
           <link rel="stylesheet" href="/assets/css/reset.css" />
           <link rel="stylesheet" href="/assets/css/main.css" />
-          <script type="module" src="/assets/js/main.mjs"></script>
           {styles && <link rel="stylesheet" href={`/assets/css/${styles}`} />}
           {script && (
             <script type="module" src={`/assets/js/${script}`}></script>
@@ -38,46 +37,42 @@ export function Layout({
         </head>
         <body>
           <nav class="navbar">
-            <div class="container">
-              <div class="navbar-content">
-                <div class="navbar-left">
-                  <a href="/" class="navbar-brand">
-                    <img
-                      src="/assets/image/logo.svg"
-                      alt="Noisebridge"
-                      class="logo"
-                    />
-                    <span class="site-title">Noisebridge Hacker Space</span>
-                  </a>
-                </div>
-                <div class="navbar-right">
-                  {isAuthenticated ? (
-                    <>
-                      <a href="/manage" class="btn-sign-in">
-                        Manage
-                      </a>
-                      <a href="/auth/signout" class="btn-sign-in">
-                        Sign Out
-                      </a>
-                    </>
-                  ) : (
-                    <a href="/auth" class="btn-sign-in">
-                      Sign In
+            <div class="navbar-content">
+              <div class="navbar-left">
+                <a href="/" class="navbar-brand">
+                  <img
+                    src="/assets/image/logo.svg"
+                    alt="Noisebridge"
+                    class="logo"
+                  />
+                  <span class="site-title">Noisebridge Hacker Space</span>
+                </a>
+              </div>
+              <div class="navbar-right">
+                {isAuthenticated ? (
+                  <>
+                    <a href="/manage" class="btn-sign-in">
+                      Manage
                     </a>
-                  )}
-                </div>
+                    <a href="/auth/signout" class="btn-sign-in">
+                      Sign Out
+                    </a>
+                  </>
+                ) : (
+                  <a href="/auth" class="btn-sign-in">
+                    Sign In
+                  </a>
+                )}
               </div>
             </div>
           </nav>
           <main class="main-content">
             <div class="container">{children}</div>
           </main>
-          <footer class="footer">
-            <div class="container">
-              <p class="footer-text">
-                Noisebridge is a 501(c)(3) non-profit. Our EIN is 26-3507741
-              </p>
-            </div>
+          <footer>
+            <p>
+              Noisebridge is a 501(c)(3) non-profit. Our EIN is 26-3507741
+            </p>
           </footer>
         </body>
       </html>

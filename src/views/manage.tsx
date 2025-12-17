@@ -13,40 +13,38 @@ export interface ManageProps {
 export function ManagePage({ customer, subscription, error }: ManageProps) {
   return (
     <Layout
-      title="Manage your Donation"
+      title={subscription ? "Manage your Donation" : "Set Up your Donation"}
       styles="manage.css"
       script="manage.mjs"
       isAuthenticated={true}
     >
-      <section class="manage-container">
-        <div class="manage-header">
-          <h1>{customer ? "Manage your Donation" : "Start a Donation"}</h1>
-          {error && (
-            <div class="error-banner" role="alert">
-              <span class="error-message">{error}</span>
-            </div>
-          )}
-        </div>
-
-        <DonationTierSelector subscription={subscription} />
-
-        {subscription && (
-          <form
-            method="POST"
-            action="/cancel"
-            class="card cancel-subscription-form"
-          >
-            <p class="form-description">
-              Or, if you want to cancel your monthly donation, click the button
-              below.
-            </p>
-
-            <button type="submit" class="btn btn-secondary btn-large">
-              Cancel Monthly Donation
-            </button>
-          </form>
+      <div class="manage-header">
+        <h1>{customer ? "Manage your Donation" : "Start a Donation"}</h1>
+        {error && (
+          <div class="error-banner" role="alert">
+            <span class="error-message">{error}</span>
+          </div>
         )}
-      </section>
+      </div>
+
+      <DonationTierSelector subscription={subscription} />
+
+      {subscription && (
+        <form
+          method="POST"
+          action="/cancel"
+          class="card cancel-subscription-form"
+        >
+          <p class="form-description">
+            Or, if you want to cancel your monthly donation, click the button
+            below.
+          </p>
+
+          <button type="submit" class="btn btn-secondary btn-large">
+            Cancel Monthly Donation
+          </button>
+        </form>
+      )}
     </Layout>
   );
 }

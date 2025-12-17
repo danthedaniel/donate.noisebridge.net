@@ -4,7 +4,6 @@
   width: 100%;
   margin-left: auto;
   margin-right: auto;
-  padding: var(--spacing-xl) 0;
 }
 
 .hero h1 {
@@ -16,18 +15,11 @@
   line-height: 1.2;
 }
 
-/* Donation Section */
-.donation-section {
-  width: 100%;
-  margin: 0 auto;
-}
-
 .card {
   background-color: var(--color-white);
   border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: var(--spacing-xl);
-  margin-bottom: var(--spacing-xl);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   transition: box-shadow 0.2s ease;
 }
@@ -83,13 +75,13 @@
   background-color: var(--color-background);
 }
 
-input[type="radio"]:checked + .btn-amount {
+input[type="radio"]:checked+.btn-amount {
   border-color: var(--color-primary);
   background-color: var(--color-primary);
   color: var(--color-white);
 }
 
-input[type="radio"]:focus + .btn-amount {
+input[type="radio"]:focus+.btn-amount {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
@@ -165,8 +157,7 @@ input[type="radio"]:focus + .btn-amount {
     font-size: 1rem;
   }
 
-  .membership-cta,
-  .onetime-donation {
+  .card {
     padding: var(--spacing-lg);
   }
 
@@ -175,7 +166,7 @@ input[type="radio"]:focus + .btn-amount {
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: var(--skinny-container-max-width)) {
   .hero h1 {
     font-size: 1.875rem;
   }
@@ -188,8 +179,7 @@ input[type="radio"]:focus + .btn-amount {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .membership-cta h2,
-  .onetime-donation h2 {
+  .card h2 {
     font-size: 1.375rem;
   }
 }
