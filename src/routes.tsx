@@ -158,6 +158,8 @@ export default async function routes(fastify: FastifyInstance) {
       return reply.redirect(paths.signIn(ErrorCode.InvalidState));
     }
 
+    githubCookie.clear();
+
     const { user, primaryEmail } = await githubOAuth.completeOAuthFlow(code);
     const email = primaryEmail || user.email;
     if (!email) {
@@ -218,6 +220,8 @@ export default async function routes(fastify: FastifyInstance) {
       );
       return reply.redirect(paths.signIn(ErrorCode.InvalidState));
     }
+
+    googleCookie.clear();
 
     const { userInfo } = await googleOAuth.completeOAuthFlow(code);
     if (!userInfo.email || !userInfo.verified_email) {
