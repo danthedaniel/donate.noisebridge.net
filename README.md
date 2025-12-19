@@ -2,6 +2,8 @@
 
 Donation portal for Noisebridge hackerspace.
 
+![Screenshot](screenshot.png)
+
 ## Setup
 
 ```bash
