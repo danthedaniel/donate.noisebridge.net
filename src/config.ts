@@ -11,6 +11,7 @@ export default {
   production: process.env.NODE_ENV === "production",
   serverProtocol: process.env.NODE_ENV === "production" ? "https" : "http",
   serverHost: assertEnvVar("SERVER_HOST"),
+  serverPort: parseInt(process.env["PORT"] || "3000", 10),
   stripeSecretKey: assertEnvVar("STRIPE_SECRET"),
   githubClientId: assertEnvVar("GITHUB_CLIENT_ID"),
   githubSecret: assertEnvVar("GITHUB_SECRET"),
