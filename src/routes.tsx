@@ -473,4 +473,8 @@ export default async function routes(fastify: FastifyInstance) {
       <ThankYouPage isAuthenticated={isAuthenticated(request, reply)} />,
     );
   });
+
+  fastify.get("/healthz", async (_request, reply) => {
+    return reply.status(200).send({ status: "ok" });
+  });
 }
