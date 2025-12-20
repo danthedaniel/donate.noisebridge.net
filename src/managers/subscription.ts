@@ -18,7 +18,6 @@ export interface SubscribeResult {
   success: true;
   checkoutUrl: string;
   sessionId: string;
-  canceledExisting: boolean;
   customerId: string;
 }
 
@@ -150,7 +149,6 @@ export class SubscriptionManager {
       success: true,
       checkoutUrl,
       sessionId: session.id,
-      canceledExisting: !!existingSubscription,
       customerId: customer.id,
     };
   }

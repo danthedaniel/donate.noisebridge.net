@@ -456,19 +456,11 @@ export default async function routes(fastify: FastifyInstance) {
       return reply.redirect(paths.manage(result.error));
     }
 
-    if (result.canceledExisting) {
-      fastify.log.info(
-        { customerId: result.customerId, email: sessionData.email },
-        "Canceled existing subscription before creating new one",
-      );
-    }
-
     fastify.log.info(
       {
         amount: amountCents,
         email: sessionData.email,
         sessionId: result.sessionId,
-        canceledExisting: result.canceledExisting,
       },
       "Stripe subscription checkout session created",
     );
