@@ -99,7 +99,8 @@ export function DonationTierSelector({
             <div class="custom-amount-input">
               <span class="currency">$</span>
               <input
-                type="number"
+                type="text"
+                inputmode="numeric"
                 name="custom-amount"
                 id="custom-amount"
                 min="5"

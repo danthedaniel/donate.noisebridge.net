@@ -1,25 +1,32 @@
 // @ts-check
 
-document.addEventListener("DOMContentLoaded", () => {
+function customAmountHandler() {
   const customAmountInput = /** @type {HTMLInputElement} */ (
-    document.querySelector(".custom-amount-input")
+    document.getElementById("tier-custom")
   );
 
   const customTierRadio = /** @type {HTMLInputElement} */ (
-    document.getElementById("amount-custom")
+    document.getElementById("custom-amount")
   );
 
   customAmountInput.addEventListener("input", () => {
     customTierRadio.checked = true;
   });
-  customAmountInput.onclick = () => {
+  customAmountInput.click = () => {
     customTierRadio.checked = true;
   };
+}
 
+function cancelFormHandler() {
   // Handle cancel button confirmation
-  const cancelForm = /** @type {HTMLFormElement} */ (
+  const cancelForm = /** @type {HTMLFormElement | null} */ (
     document.querySelector(".cancel-subscription-form")
   );
+  if (!cancelForm) {
+    // There is no cancel form if there is no current subscription.
+    return;
+  }
+
   const cancelButton = /** @type {HTMLButtonElement} */ (
     cancelForm.querySelector('button[type="submit"]')
   );
@@ -48,4 +55,9 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     true,
   );
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  customAmountHandler();
+  cancelFormHandler();
 });
