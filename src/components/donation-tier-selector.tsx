@@ -66,7 +66,7 @@ export function DonationTierSelector({
             <input
               type="radio"
               id={`tier-${tier.id}`}
-              name="tier"
+              name="amount-dollars"
               value={tier.amount.toString()}
               required
               checked={tier.checked}
@@ -89,7 +89,7 @@ export function DonationTierSelector({
           <input
             type="radio"
             id="tier-custom"
-            name="tier"
+            name="amount-dollars"
             value="custom"
             required
             checked={hasCustomAmount}
@@ -100,8 +100,8 @@ export function DonationTierSelector({
               <span class="currency">$</span>
               <input
                 type="number"
-                name="customAmount"
-                id="customAmount"
+                name="custom-amount"
+                id="custom-amount"
                 min="5"
                 step="1"
                 class="custom-input"

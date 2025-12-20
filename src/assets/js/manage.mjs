@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
   );
 
   const customTierRadio = /** @type {HTMLInputElement} */ (
-    document.getElementById("tier-custom")
+    document.getElementById("amount-custom")
   );
 
   customAmountInput.addEventListener("input", () => {

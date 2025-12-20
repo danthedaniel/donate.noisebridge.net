@@ -5,10 +5,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("custom-amount")
   );
   const amountRadios = /** @type {NodeListOf<HTMLInputElement>} */ (
-    document.querySelectorAll('input[name="amount"]')
+    document.querySelectorAll('input[name="amount-dollars"]')
   );
   const donateButton = /** @type {HTMLButtonElement} */ (
-    document.querySelector('.onetime-donation button[type="submit"]')
+    document.getElementById("donate-now")
   );
   donateButton.disabled = true;
 
@@ -46,8 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
       updateDonateButton();
     };
 
-    radio.addEventListener("change", eventHandler);
-    radio.addEventListener("click", eventHandler);
+    radio.addEventListener("input", eventHandler);
   });
 
   customAmountInput.addEventListener("input", updateDonateButton);

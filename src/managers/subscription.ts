@@ -1,9 +1,11 @@
 import type Stripe from "stripe";
 import config from "~/config";
+import type { Cents } from "~/money";
 import stripe from "~/services/stripe";
 import emailManager from "./email";
 
 export enum SubscriptionErrorCode {
+  InvalidAmount = "Please select a valid donation amount",
   SameAmount = "Select a different donation amount",
   NoCustomer = "No Stripe customer found",
   NoSubscription = "No active monthly donation found to cancel",
@@ -42,6 +44,8 @@ export interface CustomerSubscriptionInfo {
 }
 
 export class SubscriptionManager {
+  private readonly minimumAmount: Cents = { cents: 500 };
+
   /**
    * Get customer and their active subscription by email
    */
@@ -77,7 +81,7 @@ export class SubscriptionManager {
    */
   async subscribe(
     email: string,
-    amountCents: number,
+    amount: Cents,
   ): Promise<SubscribeResult | SubscribeError> {
     const { customer, subscription: existingSubscription } =
       await this.getCustomerSubscription(email);
@@ -85,11 +89,15 @@ export class SubscriptionManager {
       return { success: false, error: SubscriptionErrorCode.NoCustomer };
     }
 
+    if (amount.cents < this.minimumAmount.cents) {
+      return { success: false, error: SubscriptionErrorCode.InvalidAmount };
+    }
+
     // Check if trying to subscribe with same amount
     if (existingSubscription) {
       const existingAmount =
         existingSubscription.items.data[0]?.price?.unit_amount;
-      if (existingAmount === amountCents) {
+      if (existingAmount === amount.cents) {
         return { success: false, error: SubscriptionErrorCode.SameAmount };
       }
 
@@ -103,7 +111,7 @@ export class SubscriptionManager {
       //   items: [
       //     {
       //       id: existingItemId,
-      //       ...this.subscriptionItem(amountCents),
+      //       ...this.subscriptionItem(amount.cents),
       //     },
       //   ],
       // });
@@ -121,7 +129,7 @@ export class SubscriptionManager {
               name: "Monthly Donation to Noisebridge",
               description: "Support our hackerspace community",
             },
-            unit_amount: amountCents,
+            unit_amount: amount.cents,
             recurring: {
               interval: "month",
             },

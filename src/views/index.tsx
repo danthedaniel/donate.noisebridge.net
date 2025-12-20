@@ -49,27 +49,52 @@ export function IndexPage({ isAuthenticated, error }: IndexProps) {
 
         <form method="POST" action="/donate">
           <div class="amount-buttons">
-            <input type="radio" id="amount-10" name="amount" value="10" />
+            <input
+              type="radio"
+              id="amount-10"
+              name="amount-dollars"
+              value="10"
+            />
             <label for="amount-10" class="btn btn-amount">
               $10
             </label>
 
-            <input type="radio" id="amount-20" name="amount" value="20" />
+            <input
+              type="radio"
+              id="amount-20"
+              name="amount-dollars"
+              value="20"
+            />
             <label for="amount-20" class="btn btn-amount">
               $20
             </label>
 
-            <input type="radio" id="amount-40" name="amount" value="40" />
+            <input
+              type="radio"
+              id="amount-40"
+              name="amount-dollars"
+              value="40"
+            />
             <label for="amount-40" class="btn btn-amount">
               $40
             </label>
 
-            <input type="radio" id="amount-80" name="amount" value="80" />
+            <input
+              type="radio"
+              id="amount-80"
+              name="amount-dollars"
+              value="80"
+            />
             <label for="amount-80" class="btn btn-amount">
               $80
             </label>
 
-            <input type="radio" id="amount-160" name="amount" value="160" />
+            <input
+              type="radio"
+              id="amount-160"
+              name="amount-dollars"
+              value="160"
+            />
             <label for="amount-160" class="btn btn-amount">
               $160
             </label>
@@ -77,7 +102,7 @@ export function IndexPage({ isAuthenticated, error }: IndexProps) {
             <input
               type="radio"
               id="amount-custom"
-              name="amount"
+              name="amount-dollars"
               value="custom"
             />
             <label for="amount-custom" class="btn btn-amount">
@@ -100,7 +125,12 @@ export function IndexPage({ isAuthenticated, error }: IndexProps) {
             </div>
           </div>
 
-          <button class="btn btn-secondary btn-large" type="submit">
+          <button
+            id="donate-now"
+            class="btn btn-secondary btn-large"
+            type="submit"
+            disabled
+          >
             Donate Now
           </button>
         </form>

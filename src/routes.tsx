@@ -16,8 +16,12 @@ import { IndexPage } from "~/views/index";
 import { ManagePage } from "~/views/manage";
 import { ThankYouPage } from "~/views/thank-you";
 import emailManager from "./managers/email";
+import { parseToCents, validateAmountFormData } from "./money";
 import { ErrorPage } from "./views/error";
 
+/**
+ * Cryptographically secure random string for use with OAuth.
+ */
 export function getRandomState() {
   return crypto.randomBytes(32).toString("hex");
 }
@@ -82,17 +86,6 @@ function isAuthenticated(
   reply: FastifyReply,
 ): boolean {
   return cookies[CookieName.UserSession](request, reply).valid();
-}
-
-function parseSubscriptionAmount(amount?: string) {
-  const minimumAmount = 5; // dollars per month
-
-  const parsed = Number.parseFloat(amount || "");
-  if (!parsed || parsed < minimumAmount) {
-    return null;
-  }
-
-  return Math.round(parsed * 100); // Convert to cents
 }
 
 export default async function routes(fastify: FastifyInstance) {
@@ -371,20 +364,24 @@ export default async function routes(fastify: FastifyInstance) {
   });
 
   fastify.post<{
-    Body: { amount?: string; "custom-amount"?: string };
+    Body: unknown;
   }>("/donate", async (request, reply) => {
-    const { amount, "custom-amount": customAmount } = request.body || {};
+    const body = request.body;
+    if (!validateAmountFormData(body)) {
+      return reply.redirect(paths.index(ErrorCode.InvalidRequest));
+    }
 
-    const amountCents = donationManager.parseAmountDollars(
-      amount === "custom" ? customAmount : amount,
-    );
+    const amountCents = parseToCents(body);
     if (amountCents === null) {
-      return reply.redirect(paths.index(ErrorCode.InvalidDonationAmount));
+      fastify.log.warn({ body }, "Invalid subscription amount");
+      return reply.redirect(
+        paths.index(ErrorCode.InvalidMonthlyDonationAmount),
+      );
     }
 
     const result = await donationManager.donate(amountCents);
     if (!result.success) {
-      fastify.log.error("Stripe session created but no URL returned");
+      fastify.log.error("Failed to create Stripe session");
       return reply.redirect(paths.index(result.error));
     }
 
@@ -401,7 +398,7 @@ export default async function routes(fastify: FastifyInstance) {
   }>("/qr", async (request, reply) => {
     const { name, description, amount } = request.query;
 
-    const amountCents = donationManager.parseAmountDollars(amount);
+    const amountCents = parseToCents(amount ?? "");
     if (amountCents === null) {
       return reply.redirect(paths.index(ErrorCode.InvalidDonationAmount));
     }
@@ -420,9 +417,7 @@ export default async function routes(fastify: FastifyInstance) {
     return reply.redirect(result.checkoutUrl);
   });
 
-  fastify.post<{
-    Body: { tier?: string; customAmount?: string };
-  }>("/subscribe", async (request, reply) => {
+  fastify.post<{ Body: unknown }>("/subscribe", async (request, reply) => {
     const sessionCookie = cookies[CookieName.UserSession](request, reply);
     const sessionData = sessionCookie.value;
     if (!sessionData) {
@@ -430,14 +425,15 @@ export default async function routes(fastify: FastifyInstance) {
       return reply.redirect(paths.signIn());
     }
 
-    const { tier, customAmount } = request.body || {};
-    const amountCents = parseSubscriptionAmount(
-      tier === "custom" ? customAmount : tier,
-    );
+    const body = request.body;
+    if (!validateAmountFormData(body)) {
+      return reply.redirect(paths.manage(ErrorCode.InvalidRequest));
+    }
 
+    const amountCents = parseToCents(body);
     if (amountCents === null) {
       fastify.log.warn(
-        { tier, customAmount, email: sessionData.email },
+        { body, email: sessionData.email },
         "Invalid subscription amount",
       );
       return reply.redirect(

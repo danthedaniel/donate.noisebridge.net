@@ -1,4 +1,5 @@
 import config from "~/config";
+import type { Cents } from "~/money";
 import stripe from "~/services/stripe";
 
 export enum DonationErrorCode {
@@ -18,19 +19,7 @@ export interface DonateError {
 }
 
 export class DonationManager {
-  private readonly minimumAmountDollars = 2;
-
-  /**
-   * Parse and validate a donation amount string in whole dollars.
-   * Returns amount in cents or null if invalid.
-   */
-  parseAmountDollars(amountDollars?: string): number | null {
-    const parsed = Number.parseFloat(amountDollars || "");
-    if (!parsed || parsed < this.minimumAmountDollars) {
-      return null;
-    }
-    return Math.round(parsed * 100);
-  }
+  private readonly minimumAmount: Cents = { cents: 200 };
 
   /**
    * Create a one-time donation checkout session.
@@ -39,11 +28,11 @@ export class DonationManager {
    * @param description Product description
    */
   async donate(
-    amountCents: number,
+    amount: Cents,
     name?: string,
     description?: string,
   ): Promise<DonateResult | DonateError> {
-    if (amountCents < this.minimumAmountDollars * 100) {
+    if (amount.cents < this.minimumAmount.cents) {
       return { success: false, error: DonationErrorCode.InvalidAmount };
     }
 
@@ -59,7 +48,7 @@ export class DonationManager {
               name: name ?? "Donation to Noisebridge",
               description: description ?? "Support our hackerspace community",
             },
-            unit_amount: amountCents,
+            unit_amount: amount.cents,
           },
           quantity: 1,
         },
