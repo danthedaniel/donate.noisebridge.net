@@ -2,6 +2,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import fastifyCookie from "@fastify/cookie";
 import fastifyFormbody from "@fastify/formbody";
+import fastifyRateLimit from "@fastify/rate-limit";
 import fastifyStatic from "@fastify/static";
 import html from "@kitajs/fastify-html-plugin";
 import Fastify from "fastify";
@@ -20,6 +21,8 @@ fastify.register(fastifyCookie, {
 });
 
 fastify.register(fastifyFormbody, { bodyLimit: 1024 });
+
+fastify.register(fastifyRateLimit, { max: 256, timeWindow: "1 minute" });
 
 fastify.register(fastifyStatic, {
   root: path.join(__dirname, "assets"),

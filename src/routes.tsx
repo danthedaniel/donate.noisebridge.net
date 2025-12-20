@@ -19,6 +19,15 @@ import emailManager from "./managers/email";
 import { parseToCents, validateAmountFormData } from "./money";
 import { ErrorPage } from "./views/error";
 
+const authRateLimit = {
+  config: {
+    rateLimit: {
+      max: 3,
+      timeWindow: "1 minute",
+    },
+  },
+} as const;
+
 /**
  * Cryptographically secure random string for use with OAuth.
  */
@@ -117,7 +126,7 @@ export default async function routes(fastify: FastifyInstance) {
     );
   });
 
-  fastify.get("/auth/github/start", async (request, reply) => {
+  fastify.get("/auth/github/start", authRateLimit, async (request, reply) => {
     if (isAuthenticated(request, reply)) {
       return reply.redirect(paths.manage());
     }
@@ -174,7 +183,7 @@ export default async function routes(fastify: FastifyInstance) {
     return reply.redirect(paths.manage());
   });
 
-  fastify.get("/auth/google/start", async (request, reply) => {
+  fastify.get("/auth/google/start", authRateLimit, async (request, reply) => {
     if (isAuthenticated(request, reply)) {
       return reply.redirect(paths.manage());
     }
@@ -238,7 +247,7 @@ export default async function routes(fastify: FastifyInstance) {
 
   fastify.post<{
     Body: { email?: string };
-  }>("/auth/email", async (request, reply) => {
+  }>("/auth/email", authRateLimit, async (request, reply) => {
     if (isAuthenticated(request, reply)) {
       return reply.redirect(paths.manage());
     }
