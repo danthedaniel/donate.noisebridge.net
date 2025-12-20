@@ -390,7 +390,7 @@ export default async function routes(fastify: FastifyInstance) {
 
     const result = await donationManager.donate(amountCents);
     if (!result.success) {
-      fastify.log.error("Failed to create Stripe session");
+      fastify.log.error(`Couldn't initiate Stripe donation: ${result.error}`);
       return reply.redirect(paths.index(result.error));
     }
 
@@ -414,7 +414,7 @@ export default async function routes(fastify: FastifyInstance) {
 
     const result = await donationManager.donate(amountCents, name, description);
     if (!result.success) {
-      fastify.log.error("Stripe session created but no URL returned");
+      fastify.log.error(`Coudn't initiate Stripe donation: ${result.error}`);
       return reply.redirect(paths.index(result.error));
     }
 

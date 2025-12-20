@@ -5,7 +5,7 @@ import resend from "~/services/resend";
 import magicLinkManager from "./magic-link";
 
 class EmailManager {
-  static fromAddress = `Noisebridge <${config.emailDomain}>`;
+  static readonly fromAddress = `Noisebridge <${config.emailDomain}>`;
 
   async sendMagicLinkEmail(email: string) {
     const magicLinkUrl = magicLinkManager.generateMagicLinkUrl(email);
@@ -25,7 +25,7 @@ class EmailManager {
     return await resend.emails.send({
       from: EmailManager.fromAddress,
       to: [email],
-      subject: "Your Noisebridge donation has been canceled",
+      subject: "Your monthly donation to Noisebridge has been canceled",
       html: emailHtml,
     });
   }

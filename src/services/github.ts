@@ -27,7 +27,7 @@ interface GitHubEmail {
  * GitHubOAuth service for handling GitHub OAuth authentication
  */
 export class GitHubOAuth {
-  static redirectUri =
+  static readonly redirectUri =
     `${config.serverProtocol}://${config.serverHost}/auth/github/callback`;
 
   /**

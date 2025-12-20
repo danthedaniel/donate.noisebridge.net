@@ -25,7 +25,7 @@ interface GoogleUserInfo {
  * GoogleOAuth service for handling Google OAuth 2.0 authentication
  */
 export class GoogleOAuth {
-  static redirectUri =
+  static readonly redirectUri =
     `${config.serverProtocol}://${config.serverHost}/auth/google/callback`;
 
   /**
