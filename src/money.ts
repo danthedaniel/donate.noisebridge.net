@@ -9,28 +9,22 @@ export type AmountFormData =
 export function validateAmountFormData(
   input: unknown,
 ): input is AmountFormData {
-  console.log({ input });
   if (typeof input !== "object" || input === null || Array.isArray(input)) {
-    console.log("A");
     return false;
   }
 
   if (!("amount-dollars" in input)) {
-    console.log("B");
     return false;
   }
   if (typeof input["amount-dollars"] !== "string") {
-    console.log("C");
     return false;
   }
 
   if (input["amount-dollars"] === "custom") {
     if (!("custom-amount" in input)) {
-      console.log("D");
       return false;
     }
     if (typeof input["custom-amount"] !== "string") {
-      console.log("E");
       return false;
     }
 
@@ -67,6 +61,9 @@ export function parseToCents(
       : getAmount(amountFormData),
   );
   if (Number.isNaN(parsedDollars)) {
+    return null;
+  }
+  if (parsedDollars <= 0) {
     return null;
   }
 
