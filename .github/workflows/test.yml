@@ -25,3 +25,13 @@ jobs:
 
       - name: Run tests
         run: bun test
+        env:
+          SERVER_HOST: 127.0.0.1:3000
+          STRIPE_SECRET: rk_test_foo
+          GITHUB_CLIENT_ID: foo
+          GITHUB_SECRET: foo
+          GOOGLE_CLIENT_ID: foo
+          GOOGLE_SECRET: foo
+          COOKIE_SECRET: insecure!
+          RESEND_KEY: re_foo
+          TOTP_SECRET: insecure!
