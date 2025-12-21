@@ -14,32 +14,6 @@ with signed keys using the `@fastify/cookie` package. All auth must be done
 without requiring any server-side data storage beyond what information Stripe
 can hold.
 
-# Email
-
-To send mail for magic links use the `Resend` object that is a default export
-from `src/services/resend.ts`.
-
-Example:
-
-```TypeScript
-import resend from '~/src/services/resend';
-
-(async function() {
-  try {
-    const data = await resend.emails.send({
-      from: 'Acme <onboarding@resend.dev>',
-      to: ['delivered@resend.dev'],
-      subject: 'Hello World',
-      html: '<strong>It works!</strong>'
-    });
-
-    console.log(data);
-  } catch (error) {
-    console.error(error);
-  }
-})();
-```
-
 # Project Configuration
 
 ## Runtime & Package Manager
@@ -77,6 +51,8 @@ more complex business logic to other modules such as:
 
 Example page structure:
 ```tsx
+// biome-ignore lint/correctness/noUnusedImports: Html is used by JSX
+import Html from "@kitajs/html";
 import { Layout } from '~/components/layout'
 
 export function HomePage() {
