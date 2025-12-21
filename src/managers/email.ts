@@ -1,6 +1,7 @@
 import config from "~/config";
 import { MagicLinkEmail } from "~/emails/magic-link";
 import { SubscriptionCanceledEmail } from "~/emails/subscription-canceled";
+import type { Cents } from "~/money";
 import resend from "~/services/resend";
 import magicLinkManager from "./magic-link";
 
@@ -19,8 +20,8 @@ class EmailManager {
     });
   }
 
-  async sendSubscriptionCanceledEmail(email: string, amountCents: number) {
-    const emailHtml = SubscriptionCanceledEmail({ amountCents });
+  async sendSubscriptionCanceledEmail(email: string, amount?: Cents) {
+    const emailHtml = SubscriptionCanceledEmail({ amount });
 
     return await resend.emails.send({
       from: EmailManager.fromAddress,

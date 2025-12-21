@@ -12,32 +12,18 @@ export enum SubscriptionErrorCode {
   NoLineItem = "No line items in your active subscription",
   CreateError = "Unable to create monthly donation. Please try again.",
   CancelError = "Unable to cancel monthly donation. Please try again.",
+  UpdateError = "Unable to update donation amount. Please try again.",
 }
 
-export interface SubscribeResult {
-  success: true;
-  checkoutUrl: string;
-  sessionId: string;
-  customerId: string;
-}
+export type SubscribeResult =
+  | { success: true; checkoutUrl?: string }
+  | { success: false; error: SubscriptionErrorCode };
 
-export interface SubscribeError {
-  success: false;
-  error: SubscriptionErrorCode;
-}
+export type CancelResult =
+  | { success: true }
+  | { success: false; error: string };
 
-export interface CancelResult {
-  success: true;
-  subscriptionId: string;
-  customerId: string;
-}
-
-export interface CancelError {
-  success: false;
-  error: SubscriptionErrorCode;
-}
-
-export interface CustomerSubscriptionInfo {
+export interface SubscriptionInfo {
   customer?: Stripe.Customer | undefined;
   subscription?: Stripe.Subscription | undefined;
 }
@@ -49,9 +35,7 @@ export class SubscriptionManager {
   /**
    * Get customer and their active subscription by email
    */
-  async getCustomerSubscription(
-    email: string,
-  ): Promise<CustomerSubscriptionInfo> {
+  async getSubscription(email: string): Promise<SubscriptionInfo> {
     const customers = await stripe.customers.list({
       email,
       limit: 1,
@@ -65,50 +49,65 @@ export class SubscriptionManager {
     const subscriptions = await stripe.subscriptions.list({
       customer: customer.id,
       status: "active",
-      limit: 1,
+      limit: 2,
     });
 
-    return {
-      customer,
-      subscription: subscriptions.data[0],
-    };
+    if (subscriptions.data.length > 1) {
+      throw new Error("Multiple active subscriptions found");
+    }
+
+    const subscription = subscriptions.data[0];
+    if (!subscription) {
+      return { customer };
+    }
+    if (!this.validateSubscription(subscription)) {
+      throw new Error("Subscription is not valid");
+    }
+
+    return { customer, subscription };
+  }
+
+  private validateSubscription(subscription: Stripe.Subscription): boolean {
+    const items = subscription.items.data;
+    if (items.length !== 1) {
+      return false;
+    }
+
+    const item = items[0];
+    if (item?.price?.product !== this.productId) {
+      return false;
+    }
+
+    return true;
   }
 
   /**
-   * Create a new subscription or change an existing one.
+   * Create a new subscription or update an existing one.
    * If the customer has an existing subscription with a different amount,
-   * it will be canceled first.
+   * it will be updated with prorated billing.
    */
-  async subscribe(
-    email: string,
-    amount: Cents,
-  ): Promise<SubscribeResult | SubscribeError> {
-    const { customer, subscription: existingSubscription } =
-      await this.getCustomerSubscription(email);
-    if (!customer) {
-      return { success: false, error: SubscriptionErrorCode.NoCustomer };
-    }
-
+  async subscribe(email: string, amount: Cents): Promise<SubscribeResult> {
     if (amount.cents < this.minimumAmount.cents) {
       return { success: false, error: SubscriptionErrorCode.InvalidAmount };
     }
 
-    // Check if trying to subscribe with same amount
-    if (existingSubscription) {
-      const existingAmount =
-        existingSubscription.items.data[0]?.price?.unit_amount;
-      if (existingAmount === amount.cents) {
-        return { success: false, error: SubscriptionErrorCode.SameAmount };
-      }
-
-      const existingItemId = existingSubscription.items.data[0]?.id;
-      if (!existingItemId) {
-        return { success: false, error: SubscriptionErrorCode.NoLineItem };
-      }
-
-      // Update subscription with new price for monthly_donation product.
+    const { customer, subscription: existingSubscription } =
+      await this.getSubscription(email);
+    if (!customer) {
+      return { success: false, error: SubscriptionErrorCode.NoCustomer };
     }
 
+    if (!existingSubscription) {
+      return await this.createSubscription(customer, amount);
+    }
+
+    return await this.updateSubscription(existingSubscription, amount);
+  }
+
+  private async createSubscription(
+    customer: Stripe.Customer,
+    amount: Cents,
+  ): Promise<SubscribeResult> {
     const session = await stripe.checkout.sessions.create({
       customer: customer.id,
       mode: "subscription",
@@ -117,10 +116,7 @@ export class SubscriptionManager {
         {
           price_data: {
             currency: "usd",
-            product_data: {
-              name: "Monthly Donation to Noisebridge",
-              description: "Support our hackerspace community",
-            },
+            product: this.productId,
             unit_amount: amount.cents,
             recurring: {
               interval: "month",
@@ -141,18 +137,50 @@ export class SubscriptionManager {
     return {
       success: true,
       checkoutUrl,
-      sessionId: session.id,
-      customerId: customer.id,
     };
+  }
+
+  private async updateSubscription(
+    subscription: Stripe.Subscription,
+    amount: Cents,
+  ): Promise<SubscribeResult> {
+    const existingAmount = subscription.items.data[0]?.price?.unit_amount;
+    if (existingAmount === amount.cents) {
+      return { success: false, error: SubscriptionErrorCode.SameAmount };
+    }
+
+    const existingItemId = subscription.items.data[0]?.id;
+    if (!existingItemId) {
+      return { success: false, error: SubscriptionErrorCode.NoLineItem };
+    }
+
+    // Update subscription with new price - no checkout needed since payment method exists
+    await stripe.subscriptions.update(subscription.id, {
+      items: [
+        {
+          id: existingItemId,
+          price_data: {
+            currency: "usd",
+            product: this.productId,
+            unit_amount: amount.cents,
+            recurring: {
+              interval: "month",
+            },
+          },
+        },
+      ],
+      proration_behavior: "create_prorations",
+    });
+
+    return { success: true };
   }
 
   /**
    * Cancel an active subscription for the given email.
-   * Applies prorated refund.
+   * Issues a prorated refund to the original payment method.
    */
-  async cancel(email: string): Promise<CancelResult | CancelError> {
-    const { customer, subscription } =
-      await this.getCustomerSubscription(email);
+  async cancel(email: string): Promise<CancelResult> {
+    const { customer, subscription } = await this.getSubscription(email);
 
     if (!customer) {
       return { success: false, error: SubscriptionErrorCode.NoCustomer };
@@ -162,24 +190,24 @@ export class SubscriptionManager {
       return { success: false, error: SubscriptionErrorCode.NoSubscription };
     }
 
-    // Get the amount before canceling
-    const amountCents = subscription.items.data[0]?.price?.unit_amount;
+    await stripe.subscriptions.cancel(subscription.id);
 
-    await stripe.subscriptions.cancel(subscription.id, {
-      prorate: true,
-      invoice_now: true,
-    });
+    const amountCents = this.subscriptionAmount(subscription);
+    await emailManager.sendSubscriptionCanceledEmail(email, amountCents);
 
-    // Send cancellation email
-    if (amountCents) {
-      await emailManager.sendSubscriptionCanceledEmail(email, amountCents);
+    return { success: true };
+  }
+
+  private subscriptionAmount(
+    subscription: Stripe.Subscription,
+  ): Cents | undefined {
+    const unit_amount =
+      subscription.items.data[0]?.price?.unit_amount ?? undefined;
+    if (!unit_amount) {
+      return undefined;
     }
 
-    return {
-      success: true,
-      subscriptionId: subscription.id,
-      customerId: customer.id,
-    };
+    return { cents: unit_amount };
   }
 }
 

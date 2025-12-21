@@ -18,6 +18,12 @@ curl -fsSL https://bun.sh/install | bash
 bun install
 ```
 
+### Run setup script
+
+```shell
+./scripts/stripe-setup.ts
+```
+
 ## Development
 
 ### Set up environment variables

@@ -69,3 +69,10 @@ export function parseToCents(
 
   return { cents: Math.round(parsedDollars * 100) };
 }
+
+/**
+ * Format cents as dollar amount.
+ */
+export function formatAmount(amount: Cents): string {
+  return `$${(amount.cents / 100).toFixed(2)}`;
+}

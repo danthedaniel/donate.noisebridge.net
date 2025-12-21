@@ -5,7 +5,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import donationManager from "~/managers/donation";
 import magicLinkManager from "~/managers/magic-link";
 import subscriptionManager, {
-  type CustomerSubscriptionInfo,
+  type SubscriptionInfo,
 } from "~/managers/subscription";
 import githubOAuth from "~/services/github";
 import googleOAuth from "~/services/google";
@@ -346,9 +346,9 @@ export default async function routes(fastify: FastifyInstance) {
       return reply.redirect(paths.index());
     }
 
-    let customerSubscription: CustomerSubscriptionInfo | undefined;
+    let customerSubscription: SubscriptionInfo | undefined;
     try {
-      customerSubscription = await subscriptionManager.getCustomerSubscription(
+      customerSubscription = await subscriptionManager.getSubscription(
         sessionData.email,
       );
     } catch (error) {
@@ -455,12 +455,15 @@ export default async function routes(fastify: FastifyInstance) {
     if (!result.success) {
       return reply.redirect(paths.manage(result.error));
     }
+    if (!result.checkoutUrl) {
+      // If a subscription is updated there is no checkout process
+      return reply.redirect(paths.manage());
+    }
 
     fastify.log.info(
       {
         amount: amountCents,
         email: sessionData.email,
-        sessionId: result.sessionId,
       },
       "Stripe subscription checkout session created",
     );
@@ -486,14 +489,7 @@ export default async function routes(fastify: FastifyInstance) {
       return reply.redirect(paths.manage(result.error));
     }
 
-    fastify.log.info(
-      {
-        subscriptionId: result.subscriptionId,
-        customerId: result.customerId,
-        email: sessionData.email,
-      },
-      "Subscription canceled with prorated refund",
-    );
+    fastify.log.info({ email: sessionData.email }, "Subscription canceled");
 
     return reply.redirect(paths.manage());
   });
