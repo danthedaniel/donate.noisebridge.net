@@ -7,29 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const amountRadios = /** @type {NodeListOf<HTMLInputElement>} */ (
     document.querySelectorAll('input[name="amount-dollars"]')
   );
-  const donateButton = /** @type {HTMLButtonElement} */ (
-    document.getElementById("donate-now")
-  );
-  donateButton.disabled = true;
-
-  /**
-   * Update donate button state
-   */
-  function updateDonateButton() {
-    const customRadio = /** @type {HTMLInputElement} */ (
-      document.getElementById("amount-custom")
-    );
-
-    if (customRadio.checked) {
-      const customValue = parseFloat(customAmountInput.value);
-      donateButton.disabled = !customValue || customValue <= 0;
-    } else {
-      const anySelected = Array.from(amountRadios).some(
-        (radio) => radio.checked,
-      );
-      donateButton.disabled = !anySelected;
-    }
-  }
 
   amountRadios.forEach((radio) => {
     /** @type {(event: Event) => void} */
@@ -43,11 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
         customAmountInput.disabled = true;
       }
 
-      updateDonateButton();
     };
 
     radio.addEventListener("input", eventHandler);
   });
-
-  customAmountInput.addEventListener("input", updateDonateButton);
 });

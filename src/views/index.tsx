@@ -54,6 +54,7 @@ export function IndexPage({ isAuthenticated, error }: IndexProps) {
               id="amount-10"
               name="amount-dollars"
               value="10"
+              required
             />
             <label for="amount-10" class="btn btn-amount">
               $10
@@ -121,6 +122,7 @@ export function IndexPage({ isAuthenticated, error }: IndexProps) {
                 placeholder="0.00"
                 min="2.00"
                 step="0.01"
+                required
                 disabled
               />
             </div>
@@ -130,7 +132,6 @@ export function IndexPage({ isAuthenticated, error }: IndexProps) {
             id="donate-now"
             class="btn btn-secondary btn-large"
             type="submit"
-            disabled
           >
             Donate Now
           </button>
