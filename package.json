@@ -9,6 +9,7 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "check": "tsc --noEmit -p ./tsconfig.json || tsc --noEmit -p ./jsconfig.json",
+    "test": "bun test",
     "test:e2e": "playwright test"
   },
   "devDependencies": {
