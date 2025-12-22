@@ -67,4 +67,4 @@ jobs:
             --commit ${{ github.sha }} \
             --wait \
             --confirm \
-            --output json
+            --output text
