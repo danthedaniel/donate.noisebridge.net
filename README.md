@@ -16,6 +16,7 @@ curl -fsSL https://bun.sh/install | bash
 
 ```bash
 bun install
+playwright install firefox
 ```
 
 ### Run setup script
@@ -48,7 +49,8 @@ bun run dev
 ### Test!
 
 ```bash
-bun test
+bun run test
+bun run test:e2e
 ```
 
 ### Format & Lint!
