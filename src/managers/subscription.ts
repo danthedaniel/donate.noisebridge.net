@@ -29,8 +29,8 @@ export interface SubscriptionInfo {
 }
 
 export class SubscriptionManager {
-  private readonly minimumAmount: Cents = { cents: 500 };
-  private readonly productId = "monthly_donation";
+  static readonly minimumAmount: Cents = { cents: 500 };
+  static readonly productId = "monthly_donation";
 
   /**
    * Get customer and their active subscription by email
@@ -74,7 +74,7 @@ export class SubscriptionManager {
     }
 
     const item = items[0];
-    if (item?.price?.product !== this.productId) {
+    if (item?.price?.product !== SubscriptionManager.productId) {
       return false;
     }
 
@@ -87,16 +87,14 @@ export class SubscriptionManager {
    * it will be updated with prorated billing.
    */
   async subscribe(email: string, amount: Cents): Promise<SubscribeResult> {
-    if (amount.cents < this.minimumAmount.cents) {
+    if (amount.cents < SubscriptionManager.minimumAmount.cents) {
       return { success: false, error: SubscriptionErrorCode.InvalidAmount };
     }
 
-    const { customer, subscription: existingSubscription } =
+    const { customer: existingCustomer, subscription: existingSubscription } =
       await this.getSubscription(email);
-    if (!customer) {
-      return { success: false, error: SubscriptionErrorCode.NoCustomer };
-    }
-
+    const customer =
+      existingCustomer ?? (await stripe.customers.create({ email }));
     if (!existingSubscription) {
       return await this.createSubscription(customer, amount);
     }
@@ -116,7 +114,7 @@ export class SubscriptionManager {
         {
           price_data: {
             currency: "usd",
-            product: this.productId,
+            product: SubscriptionManager.productId,
             unit_amount: amount.cents,
             recurring: {
               interval: "month",
@@ -161,7 +159,7 @@ export class SubscriptionManager {
           id: existingItemId,
           price_data: {
             currency: "usd",
-            product: this.productId,
+            product: SubscriptionManager.productId,
             unit_amount: amount.cents,
             recurring: {
               interval: "month",

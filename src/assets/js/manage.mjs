@@ -1,20 +1,20 @@
 // @ts-check
 
 function customAmountHandler() {
-  const customAmountInput = /** @type {HTMLInputElement} */ (
+  const customTierRadio = /** @type {HTMLInputElement} */ (
     document.getElementById("tier-custom")
   );
 
-  const customTierRadio = /** @type {HTMLInputElement} */ (
+  const customAmountInput = /** @type {HTMLInputElement} */ (
     document.getElementById("custom-amount")
   );
 
   customAmountInput.addEventListener("input", () => {
     customTierRadio.checked = true;
   });
-  customAmountInput.click = () => {
+  customAmountInput.addEventListener("click", () => {
     customTierRadio.checked = true;
-  };
+  });
 }
 
 function cancelFormHandler() {

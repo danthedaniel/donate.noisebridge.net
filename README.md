@@ -30,6 +30,7 @@ playwright install firefox
 ### Set up environment variables
 
 * `SERVER_HOST` - `127.0.0.1:3000` for local dev
+* `TESTING_BACKDOOR` - `enabled` to run e2e tests
 * `STRIPE_SECRET` - Get a Stripe test key for local dev
 * `GITHUB_CLIENT_ID` - Create an OAuth app on Github
 * `GITHUB_SECRET` - Create an OAuth app on Github

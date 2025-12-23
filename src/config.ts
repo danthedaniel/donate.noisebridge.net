@@ -8,6 +8,7 @@ function assertEnvVar(key: string) {
 }
 
 export default {
+  testingBackdoor: process.env["TESTING_BACKDOOR"] === "enabled",
   production: process.env.NODE_ENV === "production",
   serverProtocol: process.env.NODE_ENV === "production" ? "https" : "http",
   serverHost: assertEnvVar("SERVER_HOST"),

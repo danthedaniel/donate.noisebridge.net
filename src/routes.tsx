@@ -7,22 +7,23 @@ import type {
   FastifyRequest,
   RouteShorthandOptions,
 } from "fastify";
+import config from "~/config";
 import donationManager from "~/managers/donation";
 import magicLinkManager from "~/managers/magic-link";
 import subscriptionManager, {
   type SubscriptionInfo,
 } from "~/managers/subscription";
+import { parseToCents, validateAmountFormData } from "~/money";
 import githubOAuth from "~/services/github";
 import googleOAuth from "~/services/google";
 import { CookieName, cookies } from "~/signed-cookies";
 import { AuthPage } from "~/views/auth";
 import { AuthEmailPage } from "~/views/auth/email";
+import { ErrorPage } from "~/views/error";
 import { IndexPage } from "~/views/index";
 import { ManagePage } from "~/views/manage";
 import { ThankYouPage } from "~/views/thank-you";
 import emailManager from "./managers/email";
-import { parseToCents, validateAmountFormData } from "./money";
-import { ErrorPage } from "./views/error";
 
 const authRateLimit: RouteShorthandOptions = {
   config: {
@@ -306,7 +307,6 @@ export default async function routes(fastify: FastifyInstance) {
       return reply.redirect(paths.signIn(ErrorCode.InvalidRequest));
     }
 
-    // Decode the state parameter
     const magicLinkState = magicLinkManager.decodeMagicLinkState(state);
     if (!magicLinkState) {
       fastify.log.warn("Invalid state parameter in magic link callback");
@@ -315,14 +315,12 @@ export default async function routes(fastify: FastifyInstance) {
 
     const { email, code } = magicLinkState;
 
-    // Verify the HMAC code (checks current, 1 past, and 1 future time window)
     const isValid = magicLinkManager.verifyMagicLinkCode(email, code);
     if (!isValid) {
       fastify.log.warn({ email }, "Invalid or expired magic link code");
       return reply.redirect(paths.signIn(ErrorCode.MagicLinkExpired));
     }
 
-    // Code is valid - create session
     const sessionCookie = cookies[CookieName.UserSession](request, reply);
     sessionCookie.value = { email, provider: "magic_link" };
 
@@ -330,6 +328,26 @@ export default async function routes(fastify: FastifyInstance) {
 
     return reply.redirect(paths.manage());
   });
+
+  if (config.testingBackdoor) {
+    fastify.get<{
+      Querystring: { email?: string };
+    }>("/auth/backdoor", async (request, reply) => {
+      const { email } = request.query;
+
+      if (!email) {
+        fastify.log.warn("Missing email parameter");
+        return reply.redirect(paths.signIn(ErrorCode.InvalidRequest));
+      }
+
+      const sessionCookie = cookies[CookieName.UserSession](request, reply);
+      sessionCookie.value = { email, provider: "magic_link" };
+
+      fastify.log.info({ email }, "User authenticated via backdoor");
+
+      return reply.redirect(paths.manage());
+    });
+  }
 
   fastify.get("/auth/signout", async (request, reply) => {
     const sessionCookie = cookies[CookieName.UserSession](request, reply);

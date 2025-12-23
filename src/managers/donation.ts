@@ -19,7 +19,7 @@ export interface DonateError {
 }
 
 export class DonationManager {
-  private readonly minimumAmount: Cents = { cents: 200 };
+  static readonly minimumAmount: Cents = { cents: 200 };
 
   /**
    * Create a one-time donation checkout session.
@@ -32,7 +32,7 @@ export class DonationManager {
     name?: string,
     description?: string,
   ): Promise<DonateResult | DonateError> {
-    if (amount.cents < this.minimumAmount.cents) {
+    if (amount.cents < DonationManager.minimumAmount.cents) {
       return { success: false, error: DonationErrorCode.InvalidAmount };
     }
 
