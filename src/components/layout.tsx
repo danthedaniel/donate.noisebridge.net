@@ -1,7 +1,13 @@
 import type { PropsWithChildren } from "@kitajs/html";
 // biome-ignore lint/correctness/noUnusedImports: Html is used by JSX
 import Html from "@kitajs/html";
+import config from "~/config";
 import Navbar from "./navbar";
+
+const githubUrl =
+  config.gitRepo &&
+  config.gitCommit &&
+  `https://github.com/${config.gitRepo}/tree/${config.gitCommit}`;
 
 export type LayoutProps = PropsWithChildren<{
   title: string;
@@ -42,7 +48,17 @@ export function Layout({
             <div class="container">{children}</div>
           </main>
           <footer>
-            <p>Noisebridge is a 501(c)(3) non-profit</p>
+            <p>
+              Noisebridge is a 501(c)(3) non-profit
+              {githubUrl && (
+                <>
+                  {" &mdash; "}
+                  <a href={githubUrl} target="_blank" rel="noopener noreferrer">
+                    Source Code
+                  </a>
+                </>
+              )}
+            </p>
           </footer>
         </body>
       </html>

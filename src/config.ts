@@ -10,6 +10,8 @@ function assertEnvVar(key: string) {
 export default {
   testingBackdoor: process.env["TESTING_BACKDOOR"] === "enabled",
   production: process.env.NODE_ENV === "production",
+  gitRepo: process.env["RENDER_GIT_REPO_SLUG"],
+  gitCommit: process.env["RENDER_GIT_COMMIT"],
   serverProtocol: process.env.NODE_ENV === "production" ? "https" : "http",
   serverHost: assertEnvVar("SERVER_HOST"),
   serverPort: parseInt(process.env["PORT"] || "3000", 10),
