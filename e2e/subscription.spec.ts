@@ -141,4 +141,62 @@ test.describe("Subscription Flow Tests", () => {
       page.locator('button:has-text("Cancel Monthly Donation")'),
     ).not.toBeVisible();
   });
+
+  test("Stripe portal can be accessed with active subscription", async ({
+    page,
+  }) => {
+    const testEmail = generateTestEmail();
+
+    // Authenticate via backdoor and wait for redirect to /manage
+    await page.goto(`/auth/backdoor?email=${encodeURIComponent(testEmail)}`, {
+      waitUntil: "networkidle",
+    });
+    await expect(page).toHaveURL(/\/manage/);
+
+    // Select the employed tier (middle tier - $100/month)
+    await page.click('label[for="tier-employed"]');
+
+    // Submit the subscription form
+    await page.click(
+      'button[type="submit"]:has-text("Start Monthly Donation")',
+    );
+    await page.waitForLoadState("networkidle");
+
+    // Should redirect to Stripe checkout
+    await expect(page).toHaveURL(/checkout\.stripe\.com/);
+
+    // Fill out the Stripe checkout form with test card
+    await fillStripeCheckoutForm(page, {
+      cardNumber: "4242424242424242",
+      expiry: getExpiryOneYearFromNow(),
+      cvc: "123",
+      name: "Test User",
+      zip: "94110",
+    });
+
+    // Submit payment and wait for network to settle
+    await page.click('button[type="submit"]:has-text("Subscribe")');
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(5000);
+
+    // Should redirect back to /manage after successful subscription
+    await expect(page).toHaveURL(/\/manage/);
+
+    // Verify the portal button is visible
+    const portalButton = page.locator('a[href="/subscribe/portal"]');
+    await expect(portalButton).toBeVisible();
+
+    // Click the portal button
+    await portalButton.click();
+    await page.waitForLoadState("networkidle");
+
+    // Should redirect to Stripe billing portal
+    await expect(page).toHaveURL(/billing\.stripe\.com/);
+
+    // Verify we're on the Stripe billing portal by checking for common elements
+    // The portal should show subscription information
+    await expect(page.getByText(/subscription/i).first()).toBeVisible({
+      timeout: 10000,
+    });
+  });
 });

@@ -30,6 +30,7 @@ export default defineConfig({
       TESTING_BACKDOOR: "enabled",
       SERVER_HOST: config.serverHost,
       STRIPE_SECRET: config.stripeSecretKey,
+      STRIPE_PORTAL_CONFIG: config.stripePortalConfig,
       GITHUB_CLIENT_ID: config.githubClientId,
       GITHUB_SECRET: config.githubSecret,
       GOOGLE_CLIENT_ID: config.googleClientId,

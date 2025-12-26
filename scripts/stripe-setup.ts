@@ -8,9 +8,7 @@ dotenv.config({ path: `${__dirname}/../.env` });
 const PRODUCT_ID = "monthly_donation";
 const PRODUCT_NAME = "Monthly Donation";
 
-async function setupStripeProduct() {
-  const stripe = (await import("../src/services/stripe")).default;
-
+async function setupStripeProduct(stripe: Stripe) {
   console.log(
     `Checking if product "${PRODUCT_NAME}" (${PRODUCT_ID}) already exists...`,
   );
@@ -49,4 +47,48 @@ async function setupStripeProduct() {
   console.log(`  Description: ${product.description}`);
 }
 
-setupStripeProduct();
+const PORTAL_HEADLINE = "Manage your Noisebridge donation";
+
+async function setupBillingPortalConfiguration(stripe: Stripe) {
+  console.log("Checking for existing billing portal configuration...");
+
+  // List existing configurations
+  const configs = await stripe.billingPortal.configurations.list({
+    limit: 100,
+  });
+
+  // Check if one exists with our settings
+  const existing = configs.data.find(
+    (config) => config.business_profile.headline === PORTAL_HEADLINE,
+  );
+
+  if (existing) {
+    console.log(`✓ Configuration already exists: ${existing.id}`);
+    return;
+  }
+
+  console.log("Creating new billing portal configuration...");
+
+  const configuration = await stripe.billingPortal.configurations.create({
+    features: {
+      subscription_cancel: {
+        enabled: false,
+      },
+    },
+    business_profile: {
+      headline: PORTAL_HEADLINE,
+    },
+  });
+
+  console.log(
+    `✓ Successfully created billing portal configuration: ${configuration.id}`,
+  );
+}
+
+async function main() {
+  const stripe = (await import("../src/services/stripe")).default;
+  await setupStripeProduct(stripe);
+  await setupBillingPortalConfiguration(stripe);
+}
+
+await main();

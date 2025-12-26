@@ -225,6 +225,7 @@ export class SubscriptionManager {
     }
 
     const session = await stripe.billingPortal.sessions.create({
+      configuration: config.stripePortalConfig,
       customer: customer.id,
       return_url: `${config.serverProtocol}://${config.serverHost}/manage`,
     });
