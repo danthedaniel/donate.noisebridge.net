@@ -34,6 +34,10 @@ export function ManagePage({
 
       <ErrorBanner error={error} />
 
+      {subscription?.status === "past_due" && (
+        <ErrorBanner error="Your subcription is past due! Click the Payment Methods button to fix it." />
+      )}
+
       <DonationTierSelector subscription={subscription} />
 
       {subscription && (

@@ -17,7 +17,7 @@ export function AuthPage({ isAuthenticated, error }: AuthProps) {
         <p class="auth-subtitle">Sign in to manage your monthly donation</p>
 
         <div class="oauth-buttons">
-          <a href="/auth/github/start" class="btn btn-auth btn-github">
+          <a href="/auth/github/start" class="btn btn-outline btn-github">
             <img
               class="oauth-icon"
               src="/assets/image/github.svg"
@@ -26,7 +26,7 @@ export function AuthPage({ isAuthenticated, error }: AuthProps) {
             Continue with GitHub
           </a>
 
-          <a href="/auth/google/start" class="btn btn-auth btn-google">
+          <a href="/auth/google/start" class="btn btn-outline btn-google">
             <img
               class="oauth-icon"
               src="/assets/image/google.svg"
@@ -57,7 +57,7 @@ export function AuthPage({ isAuthenticated, error }: AuthProps) {
               />
             </div>
 
-            <button class="btn btn-auth btn-block" type="submit">
+            <button class="btn btn-outline btn-block" type="submit">
               Send Magic Link
             </button>
           </form>

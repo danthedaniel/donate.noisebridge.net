@@ -42,34 +42,6 @@
   margin-bottom: var(--spacing-lg);
 }
 
-.btn-auth {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-sm);
-  padding: 0.875rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 500;
-  border-radius: 6px;
-  border: 1px solid var(--color-border);
-  background-color: var(--color-white);
-  color: var(--color-text);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  width: 100%;
-}
-
-.btn-auth:hover {
-  background-color: var(--color-background);
-  border-color: var(--color-text-light);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.btn-auth:active {
-  transform: translateY(0);
-}
-
 .btn-github {
   color: #24292e;
 }

@@ -458,6 +458,33 @@ export default async function routes(fastify: FastifyInstance) {
     return reply.redirect(result.checkoutUrl);
   });
 
+  fastify.get("/subscribe/portal", async (request, reply) => {
+    const sessionCookie = cookies[CookieName.UserSession](request, reply);
+    const sessionData = sessionCookie.value;
+    if (!sessionData) {
+      fastify.log.warn("Unauthenticated portal access attempt");
+      return reply.redirect(paths.signIn());
+    }
+
+    const result = await subscriptionManager.createPortalSession(
+      sessionData.email,
+    );
+    if (!result.success) {
+      fastify.log.error(
+        { email: sessionData.email, error: result.error },
+        "Failed to create billing portal session",
+      );
+      return reply.redirect(paths.manage(result.error));
+    }
+
+    fastify.log.info(
+      { email: sessionData.email },
+      "Billing portal session created",
+    );
+
+    return reply.redirect(result.portalUrl);
+  });
+
   fastify.post("/subscribe", async (request, reply) => {
     const sessionCookie = cookies[CookieName.UserSession](request, reply);
     const sessionData = sessionCookie.value;

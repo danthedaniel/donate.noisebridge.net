@@ -125,6 +125,16 @@ export function DonationTierSelector({
       <button type="submit" class="btn btn-primary btn-large">
         {subscription ? "Update Monthly Donation" : "Start Monthly Donation"}
       </button>
+
+      {subscription && (
+        <a
+          href="/subscribe/portal"
+          class="btn btn-outline btn-large"
+          style="margin-top: 1rem;"
+        >
+          Past Invoices and Payment Methods
+        </a>
+      )}
     </form>
   );
 }

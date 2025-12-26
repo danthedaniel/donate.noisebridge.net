@@ -23,6 +23,10 @@ export type CancelResult =
   | { success: true }
   | { success: false; error: string };
 
+export type PortalResult =
+  | { success: true; portalUrl: string }
+  | { success: false; error: string };
+
 export interface SubscriptionInfo {
   customer?: Stripe.Customer | undefined;
   subscription?: Stripe.Subscription | undefined;
@@ -38,25 +42,36 @@ export class SubscriptionManager {
   async getSubscription(email: string): Promise<SubscriptionInfo> {
     const customers = await stripe.customers.list({
       email,
-      limit: 1,
+      limit: 2,
     });
+    if (customers.data.length > 1) {
+      throw new Error("Multiple customers found");
+    }
 
     const customer = customers.data[0];
     if (!customer) {
       return { customer: undefined, subscription: undefined };
     }
 
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customer.id,
-      status: "active",
-      limit: 2,
-    });
+    const [activeSubs, pastDueSubs] = await Promise.all([
+      stripe.subscriptions.list({
+        customer: customer.id,
+        status: "active",
+        limit: 2,
+      }),
+      stripe.subscriptions.list({
+        customer: customer.id,
+        status: "past_due",
+        limit: 2,
+      }),
+    ]);
 
-    if (subscriptions.data.length > 1) {
+    const subscriptions = [activeSubs.data, pastDueSubs.data].flat();
+    if (subscriptions.length > 1) {
       throw new Error("Multiple active subscriptions found");
     }
 
-    const subscription = subscriptions.data[0];
+    const subscription = subscriptions[0];
     if (!subscription) {
       return { customer };
     }
@@ -194,6 +209,34 @@ export class SubscriptionManager {
     await emailManager.sendSubscriptionCanceledEmail(email, amountCents);
 
     return { success: true };
+  }
+
+  /**
+   * Create a Stripe billing portal session for the customer to manage
+   * their subscription, payment methods, and view invoices.
+   */
+  async createPortalSession(email: string): Promise<PortalResult> {
+    const { customer, subscription } = await this.getSubscription(email);
+    if (!customer) {
+      return { success: false, error: SubscriptionErrorCode.NoCustomer };
+    }
+    if (!subscription) {
+      return { success: false, error: SubscriptionErrorCode.NoSubscription };
+    }
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customer.id,
+      return_url: `${config.serverProtocol}://${config.serverHost}/manage`,
+    });
+
+    if (!session.url) {
+      return {
+        success: false,
+        error: "Unable to create billing portal session",
+      };
+    }
+
+    return { success: true, portalUrl: session.url };
   }
 
   private subscriptionAmount(
