@@ -71,8 +71,20 @@ async function setupBillingPortalConfiguration(stripe: Stripe) {
 
   const configuration = await stripe.billingPortal.configurations.create({
     features: {
+      customer_update: {
+        enabled: false,
+      },
       subscription_cancel: {
         enabled: false,
+      },
+      subscription_update: {
+        enabled: false,
+      },
+      payment_method_update: {
+        enabled: true,
+      },
+      invoice_history: {
+        enabled: true,
       },
     },
     business_profile: {
