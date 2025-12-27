@@ -68,7 +68,7 @@ jobs:
         run: bunx playwright install firefox --with-deps
 
       - name: Run E2E tests
-        run: bun run test:e2e
+        run: bun run test:e2e || bun ./scripts/clean-up-test-data.ts
         env:
           SERVER_HOST: 127.0.0.1:3000
           STRIPE_SECRET: ${{ secrets.STRIPE_SECRET }}
