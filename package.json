@@ -10,7 +10,9 @@
     "lint:fix": "biome check --write .",
     "check": "tsc --noEmit -p ./tsconfig.json || tsc --noEmit -p ./jsconfig.json",
     "test": "bun test",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "stripe-setup": "bun ./scripts/stripe-setup.ts",
+    "clean-up-test-data": "bun ./scripts/clean-up-test-data.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.8",

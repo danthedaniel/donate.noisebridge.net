@@ -22,7 +22,7 @@ playwright install firefox
 ### Run setup script
 
 ```shell
-./scripts/stripe-setup.ts
+bun run stripe-setup
 ```
 
 ## Development
