@@ -43,16 +43,11 @@ function dismissNotification(notification, type) {
     history.replaceState({}, "", url);
   }
 
-  const duration = 300; // milliseconds
-  notification.style.animation = `notification-fade-out ${duration / 1000}s ease forwards`;
+  notification.remove();
 
-  setTimeout(() => {
-    notification.remove();
-
-    // Remove container if empty
-    const container = document.querySelector(".notification-container");
-    if (container && container.children.length === 0) {
-      container.remove();
-    }
-  }, duration);
+  // Remove container if empty
+  const container = document.querySelector(".notification-container");
+  if (container && container.children.length === 0) {
+    container.remove();
+  }
 }
