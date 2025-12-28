@@ -56,11 +56,7 @@ function formatPath(path: string, params?: Record<string, string>) {
     return path;
   }
 
-  const urlSearchParams = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
-    urlSearchParams.set(key, value);
-  }
-
+  const urlSearchParams = new URLSearchParams(params);
   return `${path}?${urlSearchParams}`;
 }
 
