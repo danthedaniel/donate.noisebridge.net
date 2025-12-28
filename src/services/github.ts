@@ -1,4 +1,5 @@
 import config from "~/config";
+import { baseLogger } from "~/logger";
 
 const userAgent = "NoisebridgeDonorPortal";
 
@@ -27,6 +28,7 @@ interface GitHubEmail {
  * GitHubOAuth service for handling GitHub OAuth authentication
  */
 export class GitHubOAuth {
+  static readonly log = baseLogger.child({ class: "GitHubOAuth" });
   static readonly redirectUri =
     `${config.serverProtocol}://${config.serverHost}/auth/github/callback`;
 
@@ -102,7 +104,7 @@ export class GitHubOAuth {
    * Get the authenticated user's email addresses
    * @param accessToken - The GitHub access token
    */
-  async getUserEmails(accessToken: string): Promise<GitHubEmail[]> {
+  async getUserEmails(accessToken: string): Promise<GitHubEmail[] | null> {
     const response = await fetch("https://api.github.com/user/emails", {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -111,7 +113,10 @@ export class GitHubOAuth {
       },
     });
     if (!response.ok) {
-      throw new Error(`Failed to get user emails: ${response.statusText}`);
+      GitHubOAuth.log.error(
+        `Failed to get user emails: ${response.statusText}`,
+      );
+      return null;
     }
 
     return (await response.json()) as GitHubEmail[];
@@ -123,6 +128,10 @@ export class GitHubOAuth {
    */
   async getPrimaryEmail(accessToken: string): Promise<string | null> {
     const emails = await this.getUserEmails(accessToken);
+    if (!emails) {
+      return null;
+    }
+
     const primaryEmail = emails.find(
       (email) => email.primary && email.verified,
     );

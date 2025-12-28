@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import config from "~/config";
+import { baseLogger } from "~/logger";
 
 interface MagicLinkState {
   email: string;
@@ -9,6 +10,8 @@ interface MagicLinkState {
 const totpWindow = 5 * 60 * 1000; // milliseconds
 
 export class MagicLinkManager {
+  static readonly log = baseLogger.child({ class: "MagicLinkManager" });
+
   /**
    * Verify magic link code is valid for the given email.
    * Checks current time window, plus 1 past and 1 future window.
@@ -53,23 +56,25 @@ export class MagicLinkManager {
     try {
       state = JSON.parse(decoded) as unknown;
     } catch (e) {
-      console.error(e);
+      MagicLinkManager.log.error(e);
       return null;
     }
 
     if (typeof state !== "object" || Array.isArray(state) || state === null) {
-      console.error("Magic link state not an object");
+      MagicLinkManager.log.error("Magic link state not an object");
       return null;
     }
     if (!("code" in state) || !("email" in state)) {
-      console.error("Magic link state object missing code or email key");
+      MagicLinkManager.log.error(
+        "Magic link state object missing code or email key",
+      );
       return null;
     }
     if (
       typeof state["code"] !== "string" ||
       typeof state["email"] !== "string"
     ) {
-      console.error("Magic link code or email is not a string");
+      MagicLinkManager.log.error("Magic link code or email is not a string");
       return null;
     }
 

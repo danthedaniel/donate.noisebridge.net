@@ -1,4 +1,5 @@
 import mjml2html from "mjml";
+import { baseLogger } from "~/logger";
 
 export function Layout(contents: string): string {
   const mjml = `
@@ -30,7 +31,7 @@ export function Layout(contents: string): string {
 
   const { html, errors } = mjml2html(mjml);
   if (errors.length > 0) {
-    console.error("MJML compilation errors:", errors);
+    baseLogger.error({ errors }, "MJML compilation errors");
     throw new Error("Failed to generate HTML from MJML");
   }
 

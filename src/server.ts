@@ -7,13 +7,14 @@ import fastifyStatic from "@fastify/static";
 import html from "@kitajs/fastify-html-plugin";
 import Fastify from "fastify";
 import config from "~/config";
+import { baseLogger } from "~/logger";
 import routes from "~/routes";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const fastify = Fastify({
-  logger: true,
+  loggerInstance: baseLogger,
 });
 
 fastify.register(fastifyCookie, {
