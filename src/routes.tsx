@@ -446,7 +446,11 @@ export default async function routes(fastify: FastifyInstance) {
       messages.push({ type: "error", text: error });
     }
     if (customerSubscription.subscription?.status === "past_due") {
-      messages.push({ type: "error", text: ErrorCode.PastDue });
+      messages.push({
+        type: "error",
+        text: ErrorCode.PastDue,
+        dismissable: false,
+      });
     }
     if (info) {
       messages.push({ type: "info", text: info });

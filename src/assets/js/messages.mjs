@@ -16,9 +16,9 @@ export function initMessages() {
   );
 
   messages.forEach((message) => {
-    const dismissBtn = message.querySelector(".message-dismiss");
     const type = /** @type {Message["type"]} */ (message.dataset["type"]);
 
+    const dismissBtn = message.querySelector(".message-dismiss");
     dismissBtn?.addEventListener("click", () => {
       dismissMessage(message, type);
     });

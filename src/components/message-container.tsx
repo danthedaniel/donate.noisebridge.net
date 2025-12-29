@@ -1,5 +1,9 @@
 export interface Message {
   type: "error" | "info";
+  /**
+   * Defaults to `true`
+   */
+  dismissable?: boolean;
   text: string;
 }
 
@@ -19,9 +23,11 @@ export function MessageContainer({ messages }: MessageContainerProps) {
           data-type={message.type}
         >
           <span class="message-text">{message.text}</span>
-          <button type="button" class="message-dismiss" aria-label="Dismiss">
-            &times;
-          </button>
+          {(message.dismissable ?? true) && (
+            <button type="button" class="message-dismiss" aria-label="Dismiss">
+              &times;
+            </button>
+          )}
         </div>
       ))}
     </div>
