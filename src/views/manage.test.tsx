@@ -91,6 +91,7 @@ describe("ManagePage", () => {
       created: 1234567890,
       currency: "usd",
       customer: "cus_123",
+      customer_account: "ca_123",
       days_until_due: null,
       default_payment_method: null,
       default_source: null,
