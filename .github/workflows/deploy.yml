@@ -4,6 +4,18 @@ on:
   push:
     branches: [main]
 
+env:
+  SERVER_HOST: 127.0.0.1:3000
+  STRIPE_SECRET: ${{ secrets.STRIPE_SECRET }}
+  STRIPE_PORTAL_CONFIG: ${{ secrets.STRIPE_PORTAL_CONFIG }}
+  GITHUB_CLIENT_ID: ${{ secrets._GITHUB_CLIENT_ID }}
+  GITHUB_SECRET: ${{ secrets._GITHUB_SECRET }}
+  GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+  GOOGLE_SECRET: ${{ secrets.GOOGLE_SECRET }}
+  COOKIE_SECRET: insecure!
+  RESEND_KEY: ${{ secrets.RESEND_KEY }}
+  TOTP_SECRET: insecure!
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -23,17 +35,6 @@ jobs:
 
       - name: Run tests
         run: bun test
-        env:
-          SERVER_HOST: 127.0.0.1:3000
-          STRIPE_SECRET: ${{ secrets.STRIPE_SECRET }}
-          STRIPE_PORTAL_CONFIG: ${{ secrets.STRIPE_PORTAL_CONFIG }}
-          GITHUB_CLIENT_ID: ${{ secrets._GITHUB_CLIENT_ID }}
-          GITHUB_SECRET: ${{ secrets._GITHUB_SECRET }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_SECRET: ${{ secrets.GOOGLE_SECRET }}
-          COOKIE_SECRET: insecure!
-          RESEND_KEY: ${{ secrets.RESEND_KEY }}
-          TOTP_SECRET: insecure!
 
   lint:
     runs-on: ubuntu-latest
@@ -68,18 +69,11 @@ jobs:
         run: bunx playwright install firefox --with-deps
 
       - name: Run E2E tests
-        run: bun run test:e2e || bun run clean-up-test-data
-        env:
-          SERVER_HOST: 127.0.0.1:3000
-          STRIPE_SECRET: ${{ secrets.STRIPE_SECRET }}
-          STRIPE_PORTAL_CONFIG: ${{ secrets.STRIPE_PORTAL_CONFIG }}
-          GITHUB_CLIENT_ID: ${{ secrets._GITHUB_CLIENT_ID }}
-          GITHUB_SECRET: ${{ secrets._GITHUB_SECRET }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_SECRET: ${{ secrets.GOOGLE_SECRET }}
-          COOKIE_SECRET: insecure!
-          RESEND_KEY: ${{ secrets.RESEND_KEY }}
-          TOTP_SECRET: insecure!
+        run: bun run test:e2e
+
+      - name: Clean up test data
+        if: always()
+        run: bun run clean-up-test-data
 
       - uses: actions/upload-artifact@v6
         if: always()
