@@ -29,6 +29,7 @@ interface GitHubEmail {
  * GitHubOAuth service for handling GitHub OAuth authentication
  */
 export class GitHubOAuth {
+  static readonly redirectUri = `${config.baseUrl}${paths.githubCallback()}`;
   static readonly log = baseLogger.child({ class: "GitHubOAuth" });
 
   /**
@@ -39,7 +40,7 @@ export class GitHubOAuth {
   getAuthorizationUrl(state: string, scopes: string[]) {
     const params = new URLSearchParams({
       client_id: config.githubClientId,
-      redirect_uri: `${config.baseUrl}${paths.githubCallback()}`,
+      redirect_uri: GitHubOAuth.redirectUri,
       state: state,
       scope: scopes.join(" "),
     });
@@ -65,7 +66,7 @@ export class GitHubOAuth {
           client_id: config.githubClientId,
           client_secret: config.githubSecret,
           code: code,
-          redirect_uri: `${config.baseUrl}${paths.githubCallback()}`,
+          redirect_uri: GitHubOAuth.redirectUri,
         }),
       },
     );

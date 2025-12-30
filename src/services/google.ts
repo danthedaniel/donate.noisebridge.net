@@ -26,6 +26,8 @@ interface GoogleUserInfo {
  * GoogleOAuth service for handling Google OAuth 2.0 authentication
  */
 export class GoogleOAuth {
+  static readonly redirectUri = `${config.baseUrl}${paths.googleCallback()}`;
+
   /**
    * Build the Google OAuth authorization URL
    * @param state - CSRF protection state parameter
@@ -34,7 +36,7 @@ export class GoogleOAuth {
   getAuthorizationUrl(state: string, scopes: string[]) {
     const params = new URLSearchParams({
       client_id: config.googleClientId,
-      redirect_uri: `${config.baseUrl}${paths.googleCallback()}`,
+      redirect_uri: GoogleOAuth.redirectUri,
       response_type: "code",
       scope: scopes.join(" "),
       state: state,
@@ -60,7 +62,7 @@ export class GoogleOAuth {
         client_id: config.googleClientId,
         client_secret: config.googleSecret,
         code: code,
-        redirect_uri: `${config.baseUrl}${paths.googleCallback()}`,
+        redirect_uri: GoogleOAuth.redirectUri,
         grant_type: "authorization_code",
       }),
     });
