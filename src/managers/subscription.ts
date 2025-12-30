@@ -151,7 +151,7 @@ export class SubscriptionManager {
 
     const checkoutUrl = session.url;
     if (!checkoutUrl) {
-      throw new Error("Failed to create checkout session");
+      return { success: false, error: SubscriptionErrorCode.CreateError };
     }
 
     return {
@@ -164,8 +164,8 @@ export class SubscriptionManager {
     subscription: Stripe.Subscription,
     amount: Cents,
   ): Promise<SubscribeResult> {
-    const existingAmount = subscription.items.data[0]?.price?.unit_amount;
-    if (existingAmount === amount.cents) {
+    const existingAmount = this.subscriptionAmount(subscription);
+    if (existingAmount?.cents === amount.cents) {
       return { success: false, error: SubscriptionErrorCode.SameAmount };
     }
 
@@ -205,11 +205,9 @@ export class SubscriptionManager {
    */
   async cancel(email: string): Promise<CancelResult> {
     const { customer, subscription } = await this.getSubscription(email);
-
     if (!customer) {
       return { success: false, error: SubscriptionErrorCode.NoCustomer };
     }
-
     if (!subscription) {
       return { success: false, error: SubscriptionErrorCode.NoSubscription };
     }
@@ -251,18 +249,6 @@ export class SubscriptionManager {
     return { success: true, portalUrl: session.url };
   }
 
-  private subscriptionAmount(
-    subscription: Stripe.Subscription,
-  ): Cents | undefined {
-    const unit_amount =
-      subscription.items.data[0]?.price?.unit_amount ?? undefined;
-    if (!unit_amount) {
-      return;
-    }
-
-    return { cents: unit_amount };
-  }
-
   /**
    * Process Stripe webhook events for subscriptions.
    */
@@ -278,6 +264,17 @@ export class SubscriptionManager {
         );
         break;
     }
+  }
+
+  private subscriptionAmount(
+    subscription?: Partial<Stripe.Subscription>,
+  ): Cents | undefined {
+    const unit_amount = subscription?.items?.data[0]?.price?.unit_amount;
+    if (!unit_amount) {
+      return;
+    }
+
+    return { cents: unit_amount };
   }
 
   private async handleInvoicePaid(invoice: Stripe.Invoice) {
@@ -305,47 +302,55 @@ export class SubscriptionManager {
     subscription: Stripe.Subscription,
     previousAttributes?: Partial<Stripe.Subscription>,
   ) {
-    // Get customer email
-    const customerId = subscription.customer;
-    if (typeof customerId !== "string") {
-      return;
-    }
-
-    const customer = await stripe.customers.retrieve(customerId);
+    const customer =
+      typeof subscription.customer === "string"
+        ? await stripe.customers.retrieve(subscription.customer)
+        : subscription.customer;
     if (customer.deleted || !customer.email) {
       return;
     }
-    const email = customer.email;
 
-    // Check if status changed to past_due
-    if (
-      previousAttributes?.status !== undefined &&
-      previousAttributes.status !== "past_due" &&
-      subscription.status === "past_due"
-    ) {
+    if (this.changedToPastDue(subscription, previousAttributes)) {
+      // Handle subscription becoming past due
       const amount = this.subscriptionAmount(subscription);
-      await emailManager.sendSubscriptionPastDueEmail(email, amount);
-      return;
-    }
+      await emailManager.sendSubscriptionPastDueEmail(customer.email, amount);
+    } else {
+      // Handle subscription amount changes
+      const previousAmount = this.subscriptionAmount(previousAttributes);
+      if (!previousAmount) {
+        return;
+      }
 
-    // Check if the price/amount changed
-    const previousItems = previousAttributes?.items?.data;
-    if (previousItems && previousItems.length > 0) {
-      const previousAmount = previousItems[0]?.price?.unit_amount;
-      const currentAmount = subscription.items.data[0]?.price?.unit_amount;
+      const currentAmount = this.subscriptionAmount(subscription);
+      if (!currentAmount) {
+        return;
+      }
 
-      if (
-        typeof previousAmount === "number" &&
-        typeof currentAmount === "number" &&
-        previousAmount !== currentAmount
-      ) {
+      if (previousAmount.cents !== currentAmount.cents) {
         await emailManager.sendSubscriptionUpdatedEmail(
-          email,
-          { cents: previousAmount },
-          { cents: currentAmount },
+          customer.email,
+          previousAmount,
+          currentAmount,
         );
       }
     }
+  }
+
+  private changedToPastDue(
+    subscription: Stripe.Subscription,
+    previousAttributes?: Partial<Stripe.Subscription>,
+  ): boolean {
+    if (!previousAttributes?.status) {
+      // Newly created - no previous attributes available
+      return false;
+    }
+
+    if (previousAttributes.status === "past_due") {
+      // Subscription was already past due
+      return false;
+    }
+
+    return subscription.status === "past_due";
   }
 }
 
