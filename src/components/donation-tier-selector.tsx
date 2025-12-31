@@ -1,4 +1,5 @@
 import type Stripe from "stripe";
+import { SubscriptionManager } from "~/managers/subscription";
 import paths from "~/paths";
 
 interface Tier {
@@ -102,7 +103,7 @@ export function DonationTierSelector({
                 inputmode="numeric"
                 name="custom-amount"
                 id="custom-amount"
-                min="5"
+                min={SubscriptionManager.minimumAmount.cents / 100}
                 step="1"
                 class="custom-input"
                 placeholder="0.00"

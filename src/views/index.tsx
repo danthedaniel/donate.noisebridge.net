@@ -1,5 +1,6 @@
 import { Layout } from "~/components/layout";
 import { type Message, MessageContainer } from "~/components/message-container";
+import { DonationManager } from "~/managers/donation";
 import paths from "~/paths";
 
 export interface IndexProps {
@@ -120,7 +121,7 @@ export function IndexPage({ isAuthenticated, messages = [] }: IndexProps) {
                   id="custom-amount"
                   name="custom-amount"
                   placeholder="0.00"
-                  min="2.00"
+                  min={DonationManager.minimumAmount.cents / 100}
                   step="0.01"
                   required
                   disabled
