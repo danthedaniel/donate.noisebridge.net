@@ -25,7 +25,7 @@ export function initMessages() {
 
     // Auto-clear "info" type messages
     if (type === "info") {
-      setTimeout(() => dismissMessage(message, type), 5000);
+      setTimeout(() => dismissMessage(message, type), 8000);
     }
   });
 }

@@ -59,8 +59,8 @@ export enum ErrorCode {
 
 export enum InfoCode {
   SubscriptionCreated = "Your monthly donation has been set up. Thank you!",
-  SubscriptionUpdated = "Your donation amount has been updated.",
-  SubscriptionCancelled = "Your monthly donation has been cancelled.",
+  SubscriptionUpdated = "Your donation amount has been updated. The new amount will apply to the next billing cycle.",
+  SubscriptionCancelled = "Your monthly donation has been cancelled. No further charges will be made.",
 }
 
 function isAuthenticated(
