@@ -16,6 +16,7 @@ export enum SubscriptionErrorCode {
   CreateError = "Unable to create monthly donation. Please try again.",
   CancelError = "Unable to cancel monthly donation. Please try again.",
   UpdateError = "Unable to update donation amount. Please try again.",
+  PastDue = "Please fix your payment details. Your current subscription is past due.",
 }
 
 export type SubscribeResult =
@@ -145,6 +146,10 @@ export class SubscriptionManager {
     subscription: Stripe.Subscription,
     amount: Cents,
   ): Promise<SubscribeResult> {
+    if (subscription.status === "past_due") {
+      return { success: false, error: SubscriptionErrorCode.PastDue };
+    }
+
     const existingAmount = this.subscriptionAmount(subscription);
     if (existingAmount?.cents === amount.cents) {
       return { success: false, error: SubscriptionErrorCode.SameAmount };
