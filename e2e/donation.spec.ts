@@ -4,6 +4,47 @@ import {
   getExpiryOneYearFromNow,
 } from "./stripe-utils";
 
+test.describe("Donation Validation Tests", () => {
+  test("Custom amount below $2 shows error", async ({ page }) => {
+    await page.goto("/");
+
+    // Click the Custom amount button
+    await page.click('label[for="amount-custom"]');
+
+    // Fill in custom amount below minimum ($2.00)
+    await page.fill('input[name="custom-amount"]', "1.50");
+
+    // Submit the form
+    await page.click('button[type="submit"]:has-text("Donate Now")');
+
+    // Should stay on the same page with an error message (URL will have query params)
+    expect(page.url()).toMatch(/^http:\/\/127\.0\.0\.1:3000\/\?/);
+    await expect(page.locator(".message-error")).toBeVisible();
+    await expect(page.locator(".message-error")).toContainText(
+      "valid donation amount",
+    );
+  });
+
+  test("Custom amount of exactly $2 is accepted", async ({ page }) => {
+    await page.goto("/");
+
+    // Click the Custom amount button
+    await page.click('label[for="amount-custom"]');
+
+    // Fill in exactly the minimum amount
+    await page.fill('input[name="custom-amount"]', "2.00");
+
+    // Submit the form
+    await page.click('button[type="submit"]:has-text("Donate Now")');
+
+    // Should redirect to Stripe checkout
+    await expect(page).toHaveURL(/checkout\.stripe\.com/);
+
+    // Expect page to contain "$2.00" on it
+    await expect(page.getByText("$2.00")).toBeVisible();
+  });
+});
+
 test.describe("Donation Flow Tests", () => {
   test("Amount $10 button creates Stripe checkout and redirects to /thank-you", async ({
     page,
@@ -34,6 +75,10 @@ test.describe("Donation Flow Tests", () => {
 
     // Submit payment
     await page.click('button[type="submit"]:has-text("Pay")');
+
+    // Wait for redirect to complete (Stripe processes payment and redirects)
+    await page.waitForTimeout(5000);
+    await page.waitForLoadState("networkidle");
 
     // Should redirect to thank-you page after successful payment
     await expect(page).toHaveURL(/\/thank-you/);
@@ -71,6 +116,10 @@ test.describe("Donation Flow Tests", () => {
 
     // Submit payment
     await page.click('button[type="submit"]:has-text("Pay")');
+
+    // Wait for redirect to complete (Stripe processes payment and redirects)
+    await page.waitForTimeout(5000);
+    await page.waitForLoadState("networkidle");
 
     // Should redirect to thank-you page after successful payment
     await expect(page).toHaveURL(/\/thank-you/);

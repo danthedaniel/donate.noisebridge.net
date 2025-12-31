@@ -23,7 +23,10 @@ fastify.register(fastifyCookie, {
 
 fastify.register(fastifyFormbody, { bodyLimit: 1024 });
 
-fastify.register(fastifyRateLimit, { max: 256, timeWindow: "1 minute" });
+// Disable rate limiting in test mode to avoid issues with parallel tests
+if (!config.testingBackdoor) {
+  fastify.register(fastifyRateLimit, { max: 256, timeWindow: "1 minute" });
+}
 
 fastify.register(fastifyStatic, {
   root: path.join(__dirname, "assets"),

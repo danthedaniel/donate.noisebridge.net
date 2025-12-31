@@ -46,4 +46,28 @@ test.describe("Auth Flow Tests", () => {
     // Should redirect to the subscription mangement page
     await expect(page).toHaveURL(/\/manage/);
   });
+
+  test("Signout flow clears authentication", async ({ page }) => {
+    const testEmail = "signout-test@example.com";
+
+    // Login via backdoor
+    await page.goto(`/auth/backdoor?email=${encodeURIComponent(testEmail)}`, {
+      waitUntil: "networkidle",
+    });
+
+    // Verify redirected and authenticated (on /manage page)
+    await expect(page).toHaveURL(/\/manage/);
+
+    // Navigate to signout
+    await page.goto("/auth/signout");
+
+    // Verify redirected to home page
+    await expect(page).toHaveURL("/");
+
+    // Navigate to /manage to verify no longer authenticated
+    await page.goto("/manage");
+
+    // Should redirect to home page (not authenticated anymore)
+    await expect(page).toHaveURL("/");
+  });
 });
