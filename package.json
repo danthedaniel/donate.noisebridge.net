@@ -9,7 +9,7 @@
     "start": "bun src/server.ts",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "check": "tsc --noEmit -p ./tsconfig.json || tsc --noEmit -p ./jsconfig.json",
+    "check": "tsc --noEmit -p ./tsconfig.json && tsc --noEmit -p ./jsconfig.json",
     "test": "bun test",
     "test:e2e": "playwright test",
     "stripe-setup": "bun ./scripts/stripe-setup.ts",

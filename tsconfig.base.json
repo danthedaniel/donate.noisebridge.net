@@ -21,6 +21,11 @@
     "noImplicitReturns": true,
     "noUncheckedSideEffectImports": true,
     "allowUnreachableCode": false,
-    "allowUnusedLabels": false
+    "allowUnusedLabels": false,
+    "moduleResolution": "bundler",
+    "jsx": "preserve",
+    "jsxFactory": "Html.createElement",
+    "jsxFragmentFactory": "Html.Fragment",
+    "jsxImportSource": "@kitajs/html"
   }
 }
