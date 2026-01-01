@@ -112,7 +112,7 @@ input[type="radio"]:focus + .btn-amount {
   color: var(--color-text);
 }
 
-.custom-amount input:hover:not(:disabled) {
+.custom-amount input:hover:not(:read-only) {
   border-color: var(--color-text-light);
 }
 
@@ -127,9 +127,9 @@ input[type="radio"]:focus + .btn-amount {
   opacity: 0.5;
 }
 
-.custom-amount input:disabled {
+.custom-amount input:read-only {
   background-color: var(--color-background);
-  cursor: not-allowed;
+  cursor: text;
   opacity: 0.6;
 }
 

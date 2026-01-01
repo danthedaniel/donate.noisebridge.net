@@ -16,6 +16,7 @@ export enum SubscriptionErrorCode {
   CreateError = "Unable to create monthly donation. Please try again.",
   CancelError = "Unable to cancel monthly donation. Please try again.",
   UpdateError = "Unable to update donation amount. Please try again.",
+  PortalError = "Unable to create billing portal session",
   PastDue = "Please fix your payment details. Your current subscription is past due.",
 }
 
@@ -198,7 +199,15 @@ export class SubscriptionManager {
       return { success: false, error: SubscriptionErrorCode.NoSubscription };
     }
 
-    await stripe.subscriptions.cancel(subscription.id);
+    try {
+      await stripe.subscriptions.cancel(subscription.id);
+    } catch (e) {
+      SubscriptionManager.log.error(
+        { error: e },
+        "Failed to cancel subscription",
+      );
+      return { success: false, error: SubscriptionErrorCode.CancelError };
+    }
 
     const amountCents = this.subscriptionAmount(subscription);
     await emailManager.sendSubscriptionCanceledEmail(email, amountCents);
@@ -219,17 +228,22 @@ export class SubscriptionManager {
       return { success: false, error: SubscriptionErrorCode.NoSubscription };
     }
 
-    const session = await stripe.billingPortal.sessions.create({
-      configuration: config.stripePortalConfig,
-      customer: customer.id,
-      return_url: `${config.baseUrl}${paths.manage()}`,
-    });
-
+    let session: Stripe.Response<Stripe.BillingPortal.Session> | undefined;
+    try {
+      session = await stripe.billingPortal.sessions.create({
+        configuration: config.stripePortalConfig,
+        customer: customer.id,
+        return_url: `${config.baseUrl}${paths.manage()}`,
+      });
+    } catch (e) {
+      SubscriptionManager.log.error(
+        { error: e },
+        "Failed to create Stripe Portal session",
+      );
+      return { success: false, error: SubscriptionErrorCode.PortalError };
+    }
     if (!session.url) {
-      return {
-        success: false,
-        error: "Unable to create billing portal session",
-      };
+      return { success: false, error: SubscriptionErrorCode.PortalError };
     }
 
     return { success: true, portalUrl: session.url };

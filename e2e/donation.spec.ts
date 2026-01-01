@@ -14,15 +14,20 @@ test.describe("Donation Validation Tests", () => {
     // Fill in custom amount below minimum ($2.00)
     await page.fill('input[name="custom-amount"]', "1.50");
 
-    // Submit the form
+    // Get the custom amount input
+    const customAmountInput = page.locator('input[name="custom-amount"]');
+
+    // Try to submit the form
     await page.click("#donate-now");
 
-    // Should stay on the same page with an error message (URL will have query params)
-    expect(page.url()).toMatch(/^http:\/\/127\.0\.0\.1:3000\/\?/);
-    await expect(page.locator(".message-error")).toBeVisible();
-    await expect(page.locator(".message-error")).toContainText(
-      "valid donation amount",
+    // Form should not navigate (client-side validation blocks it)
+    expect(page.url()).toMatch(/^http:\/\/127\.0\.0\.1:3000\/$/);
+
+    // Check that the input has a custom validity message set
+    const validationMessage = await customAmountInput.evaluate(
+      (el) => el.validationMessage,
     );
+    expect(validationMessage).toContain("Minimum donation");
   });
 
   test("Custom amount of exactly $2 is accepted", async ({ page }) => {

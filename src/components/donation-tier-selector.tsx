@@ -103,8 +103,7 @@ export function DonationTierSelector({
                 inputmode="numeric"
                 name="custom-amount"
                 id="custom-amount"
-                min={SubscriptionManager.minimumAmount.cents / 100}
-                step="1"
+                data-min={SubscriptionManager.minimumAmount.cents / 100}
                 class="custom-input"
                 placeholder="0.00"
                 value={
@@ -112,6 +111,7 @@ export function DonationTierSelector({
                     ? ((existingAmount ?? 0) / 100).toFixed(2)
                     : undefined
                 }
+                required={hasCustomAmount}
               />
               <span class="period">/month</span>
             </div>

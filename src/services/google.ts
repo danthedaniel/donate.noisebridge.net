@@ -1,4 +1,5 @@
 import config from "~/config";
+import { baseLogger } from "~/logger";
 import paths from "~/paths";
 
 const userAgent = "NoisebridgeDonorPortal";
@@ -26,6 +27,7 @@ interface GoogleUserInfo {
  * GoogleOAuth service for handling Google OAuth 2.0 authentication
  */
 export class GoogleOAuth {
+  static readonly log = baseLogger.child({ class: "GoogleOAuth" });
   static readonly redirectUri = `${config.baseUrl}${paths.googleCallback()}`;
 
   /**
@@ -68,14 +70,17 @@ export class GoogleOAuth {
     });
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(
-        `Failed to get access token: ${response.statusText} - ${errorText}`,
+      GoogleOAuth.log.error(
+        { errorText },
+        `Failed to get access token: ${response.statusText}`,
       );
+      return null;
     }
 
     const data = (await response.json()) as GoogleTokenResponse;
     if (!data.access_token) {
-      throw new Error("No access token in response");
+      GoogleOAuth.log.error("No access token in response");
+      return null;
     }
 
     return data.access_token;
@@ -97,9 +102,11 @@ export class GoogleOAuth {
     );
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(
-        `Failed to get user info: ${response.statusText} - ${errorText}`,
+      GoogleOAuth.log.error(
+        { errorText },
+        `Failed to get user info: ${response.statusText}`,
       );
+      return null;
     }
 
     return (await response.json()) as GoogleUserInfo;
@@ -112,7 +119,14 @@ export class GoogleOAuth {
    */
   async completeOAuthFlow(code: string) {
     const accessToken = await this.getAccessToken(code);
+    if (!accessToken) {
+      return null;
+    }
+
     const userInfo = await this.getUserInfo(accessToken);
+    if (!userInfo) {
+      return null;
+    }
 
     return {
       accessToken,

@@ -48,6 +48,7 @@ export enum ErrorCode {
   InvalidRequest = "Invalid request parameters",
   GithubError = "GitHub raised an error",
   GoogleError = "Google raised an error",
+  OAuthFailed = "Failed to perform OAuth",
   NoEmail = "Could not find an email address for you",
   EmailInvalid = "Invalid email address",
   InvalidMagicLink = "Invalid magic link",
@@ -206,7 +207,12 @@ export default async function routes(fastify: FastifyInstance) {
       return reply.redirect(paths.signIn({ error: ErrorCode.InvalidState }));
     }
 
-    const { user, primaryEmail } = await githubOAuth.completeOAuthFlow(code);
+    const oauthResult = await githubOAuth.completeOAuthFlow(code);
+    if (!oauthResult) {
+      return reply.redirect(paths.signIn({ error: ErrorCode.OAuthFailed }));
+    }
+
+    const { user, primaryEmail } = oauthResult;
     const email = primaryEmail || user.email;
     if (!email) {
       fastify.log.warn(
@@ -268,7 +274,12 @@ export default async function routes(fastify: FastifyInstance) {
       return reply.redirect(paths.signIn({ error: ErrorCode.InvalidState }));
     }
 
-    const { userInfo } = await googleOAuth.completeOAuthFlow(code);
+    const oauthResult = await googleOAuth.completeOAuthFlow(code);
+    if (!oauthResult) {
+      return reply.redirect(paths.signIn({ error: ErrorCode.OAuthFailed }));
+    }
+
+    const { userInfo } = oauthResult;
     if (!userInfo.email || !userInfo.verified_email) {
       fastify.log.warn(
         { userId: userInfo.id },
@@ -485,7 +496,7 @@ export default async function routes(fastify: FastifyInstance) {
 
     const result = await donationManager.donate(amountCents, name, description);
     if (!result.success) {
-      fastify.log.error(`Coudn't initiate Stripe donation: ${result.error}`);
+      fastify.log.error(`Couldn't initiate Stripe donation: ${result.error}`);
       return reply.redirect(paths.index({ error: result.error }));
     }
 

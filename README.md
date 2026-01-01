@@ -30,7 +30,7 @@ bun run stripe-setup
 ### Set up environment variables
 
 * `SERVER_HOST` - `127.0.0.1:3000` for local dev
-* `TESTING_BACKDOOR` - `enabled` to run e2e tests
+* `TESTING_BACKDOOR` - `enabled` for local dev and e2e tests
 * `STRIPE_SECRET` - Get a Stripe test key for local dev
 * `STRIPE_PORTAL_CONFIG` - ID like `bpc_...` from `./scripts/stripe-setup.ts`
 * `STRIPE_WEBHOOK_SECRET` - Get from `stripe listen --forward-to localhost:3000/webhook`

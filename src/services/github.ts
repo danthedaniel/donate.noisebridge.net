@@ -71,12 +71,16 @@ export class GitHubOAuth {
       },
     );
     if (!response.ok) {
-      throw new Error(`Failed to get access token: ${response.statusText}`);
+      GitHubOAuth.log.error(
+        `Failed to get access token: ${response.statusText}`,
+      );
+      return null;
     }
 
     const data = (await response.json()) as GitHubTokenResponse;
     if (!data.access_token) {
-      throw new Error("No access token in response");
+      GitHubOAuth.log.error("No access token in response");
+      return null;
     }
 
     return data.access_token;
@@ -95,7 +99,10 @@ export class GitHubOAuth {
       },
     });
     if (!response.ok) {
-      throw new Error(`Failed to get user profile: ${response.statusText}`);
+      GitHubOAuth.log.error(
+        `Failed to get user profile: ${response.statusText}`,
+      );
+      return null;
     }
 
     return (await response.json()) as GitHubUser;
@@ -146,10 +153,17 @@ export class GitHubOAuth {
    */
   async completeOAuthFlow(code: string) {
     const accessToken = await this.getAccessToken(code);
+    if (!accessToken) {
+      return null;
+    }
+
     const [user, primaryEmail] = await Promise.all([
       this.getUserProfile(accessToken),
       this.getPrimaryEmail(accessToken),
     ]);
+    if (!user) {
+      return null;
+    }
 
     return {
       accessToken,

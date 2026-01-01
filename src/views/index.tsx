@@ -121,10 +121,9 @@ export function IndexPage({ isAuthenticated, messages = [] }: IndexProps) {
                   id="custom-amount"
                   name="custom-amount"
                   placeholder="0.00"
-                  min={DonationManager.minimumAmount.cents / 100}
-                  step="0.01"
+                  data-min={DonationManager.minimumAmount.cents / 100}
                   required
-                  disabled
+                  readonly
                 />
               </div>
             </div>

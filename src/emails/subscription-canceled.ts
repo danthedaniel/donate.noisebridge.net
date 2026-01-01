@@ -22,8 +22,8 @@ export function SubscriptionCanceledEmail({
       Your monthly donation to Noisebridge has been successfully canceled.
     </mj-text>
     ${
-      amount &&
-      `<mj-table padding="20px" css-class="amount-box">
+      amount
+        ? `<mj-table padding="20px" css-class="amount-box">
       <tr>
         <td style="background-color: #f8f8f8; padding: 20px; border-radius: 8px; text-align: center;">
           <div style="font-size: 16px; margin-bottom: 10px; color: #555555;">
@@ -35,6 +35,7 @@ export function SubscriptionCanceledEmail({
         </td>
       </tr>
     </mj-table>`
+        : ""
     }
     <mj-text align="center" padding-top="30px">
       Your recurring donation has been canceled and you will not be charged again.

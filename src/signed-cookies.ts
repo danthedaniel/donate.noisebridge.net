@@ -1,4 +1,5 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
+import config from "~/config";
 
 export interface SessionData {
   email: string;
@@ -17,7 +18,7 @@ export enum CookieName {
 
 class SignedCookie<T> {
   static readonly baseOptions = {
-    secure: process.env.NODE_ENV === "production",
+    secure: config.serverProtocol === "https",
     sameSite: "lax",
     path: "/",
   } as const;

@@ -1,6 +1,7 @@
 // @ts-check
 
 import { initMessages } from "./messages.mjs";
+import { enforcePattern, validateMinAmount } from "./validate.mjs";
 
 function customAmountHandler() {
   const customTierRadio = /** @type {HTMLInputElement} */ (
@@ -11,11 +12,25 @@ function customAmountHandler() {
     document.getElementById("custom-amount")
   );
 
+  enforcePattern(customAmountInput, /^(\d+(\.\d{0,2})?)?$/);
+
   customAmountInput.addEventListener("input", () => {
     customTierRadio.checked = true;
+    validateMinAmount(customAmountInput);
   });
   customAmountInput.addEventListener("click", () => {
     customTierRadio.checked = true;
+  });
+
+  // Set required field for the custom amount depending on which tier is
+  // selected.
+  const radioButtons = /** @type {NodeListOf<HTMLInputElement>} */ (
+    document.querySelectorAll(".tier-options input[type=radio]")
+  );
+  radioButtons.forEach((radioButton) => {
+    radioButton.addEventListener("change", () => {
+      customAmountInput.required = customTierRadio.checked;
+    });
   });
 }
 
@@ -51,7 +66,6 @@ function cancelFormHandler() {
       if (confirmClicked) {
         confirmClicked = false;
         cancelButton.textContent = originalText;
-        cancelButton.classList.remove("btn-warning");
       }
     },
     true,
