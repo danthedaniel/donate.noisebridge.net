@@ -31,7 +31,7 @@ function formatPath(path: string, params?: Record<string, string | undefined>) {
 type FunctionReturnsString = (...args: any[]) => string;
 
 /**
- * Central location to define paths. This prevents inconsitencies within the
+ * Central location to define paths. This prevents inconsistencies within the
  * site with what the paths are or what query parameters they can receive. Each
  * path is noted with a comment containing the path string so that developers
  * can quickly see the path by hovering over one of these functions.

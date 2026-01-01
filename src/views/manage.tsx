@@ -43,8 +43,8 @@ export function ManagePage({
             class="card cancel-subscription-form"
           >
             <p class="form-description">
-              If you want to cancel your monthly donation double click the
-              button below.
+              If you want to cancel your monthly donation click the button below
+              two times.
             </p>
 
             <button type="submit" class="btn btn-secondary btn-large">

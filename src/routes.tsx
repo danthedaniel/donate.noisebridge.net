@@ -632,7 +632,7 @@ export default async function routes(fastify: FastifyInstance) {
       const body = request.rawBody;
       if (!body) {
         fastify.log.error("Missing request.rawBody");
-        return reply.status(500).send({ error: "Missing raw body data " });
+        return reply.status(500).send({ error: "Missing raw body data" });
       }
 
       const sig = request.headers["stripe-signature"];
