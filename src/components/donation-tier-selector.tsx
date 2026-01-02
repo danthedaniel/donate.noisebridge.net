@@ -111,7 +111,8 @@ export function DonationTierSelector({
                     ? ((existingAmount ?? 0) / 100).toFixed(2)
                     : undefined
                 }
-                required={hasCustomAmount}
+                required
+                readonly={!hasCustomAmount}
               />
               <span class="period">/month</span>
             </div>

@@ -21,27 +21,28 @@ export function enforcePattern(input, pattern) {
 }
 
 /**
- * Validate that a custom amount meets the minimum requirement.
+ * Install a validator on an input that requires the value to be above a min.
  *
  * Reads the `data-min` attribute on `input`.
  *
  * @param {HTMLInputElement} input
- * @returns {boolean}
  */
 export function validateMinAmount(input) {
-  const min = parseFloat(input.dataset["min"] ?? "0");
-  const value = parseFloat(input.value);
+  input.addEventListener("input", () => {
+    const min = parseFloat(input.dataset["min"] ?? "0");
+    const value = parseFloat(input.value);
 
-  if (Number.isNaN(value)) {
-    input.setCustomValidity(`Please enter a number`);
-    return false;
-  }
+    if (Number.isNaN(value)) {
+      input.setCustomValidity(`Please enter a number`);
+      return;
+    }
 
-  if (value < min) {
-    input.setCustomValidity(`Minimum donation is $${min.toFixed(2)}`);
-    return false;
-  }
+    if (value < min) {
+      input.setCustomValidity(`Minimum donation is $${min.toFixed(2)}`);
+      return;
+    }
 
-  input.setCustomValidity("");
-  return true;
+    input.setCustomValidity("");
+    return;
+  });
 }

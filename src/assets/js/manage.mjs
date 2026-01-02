@@ -1,9 +1,13 @@
 // @ts-check
 
 import { initMessages } from "./messages.mjs";
+import {
+  activateCustomOnClick,
+  activateCustomOnRadio,
+} from "./money-forms.mjs";
 import { enforcePattern, validateMinAmount } from "./validate.mjs";
 
-function customAmountHandler() {
+function initCustomAmount() {
   const customTierRadio = /** @type {HTMLInputElement} */ (
     document.getElementById("tier-custom")
   );
@@ -12,44 +16,29 @@ function customAmountHandler() {
     document.getElementById("custom-amount")
   );
 
-  enforcePattern(customAmountInput, /^(\d+(\.\d{0,2})?)?$/);
-
-  customAmountInput.addEventListener("input", () => {
-    customTierRadio.checked = true;
-    validateMinAmount(customAmountInput);
-  });
-  customAmountInput.addEventListener("click", () => {
-    customTierRadio.checked = true;
-  });
-
-  // Set required field for the custom amount depending on which tier is
-  // selected.
   const radioButtons = /** @type {NodeListOf<HTMLInputElement>} */ (
     document.querySelectorAll(".tier-options input[type=radio]")
   );
-  radioButtons.forEach((radioButton) => {
-    radioButton.addEventListener("change", () => {
-      customAmountInput.required = customTierRadio.checked;
-    });
-  });
+
+  enforcePattern(customAmountInput, /^(\d+(\.\d{0,2})?)?$/);
+
+  validateMinAmount(customAmountInput);
+
+  activateCustomOnClick(customAmountInput, customTierRadio);
+
+  activateCustomOnRadio(radioButtons, customAmountInput);
 }
 
 function cancelFormHandler() {
-  // Handle cancel button confirmation
-  const cancelForm = /** @type {HTMLFormElement | null} */ (
+  const cancelForm = /** @type {HTMLFormElement} */ (
     document.querySelector(".cancel-subscription-form")
   );
-  if (!cancelForm) {
-    // There is no cancel form if there is no current subscription.
-    return;
-  }
-
   const cancelButton = /** @type {HTMLButtonElement} */ (
     cancelForm.querySelector('button[type="submit"]')
   );
 
   let confirmClicked = false;
-  const originalText = cancelButton.textContent || "Cancel Monthly Donation";
+  const originalText = cancelButton.textContent;
 
   cancelButton.addEventListener("click", (event) => {
     if (!confirmClicked) {
@@ -74,6 +63,6 @@ function cancelFormHandler() {
 
 document.addEventListener("DOMContentLoaded", () => {
   initMessages();
-  customAmountHandler();
+  initCustomAmount();
   cancelFormHandler();
 });
