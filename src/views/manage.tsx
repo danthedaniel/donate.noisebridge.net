@@ -47,7 +47,11 @@ export function ManagePage({
               two times.
             </p>
 
-            <button type="submit" class="btn btn-secondary btn-large">
+            <button
+              type="submit"
+              class="btn btn-secondary btn-large"
+              aria-live="polite"
+            >
               Cancel Monthly Donation
             </button>
           </form>

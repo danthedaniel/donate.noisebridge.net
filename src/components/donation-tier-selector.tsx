@@ -60,7 +60,8 @@ export function DonationTierSelector({
           : "Choose a monthly donation tier to support Noisebridge"}
       </p>
 
-      <div class="tier-options">
+      <fieldset class="tier-options">
+        <legend class="visually-hidden">Select a monthly donation tier</legend>
         {tiers.map((tier) => (
           <label class="tier-card" for={`tier-${tier.id}`}>
             <input
@@ -73,14 +74,14 @@ export function DonationTierSelector({
             />
             <div class="tier-content">
               <h3 class="tier-name">{tier.name}</h3>
-              <div class="tier-amount">
+              <div class="tier-amount" aria-hidden="true">
                 <span class="currency">$</span>
                 <span class="amount">{tier.amount}</span>
                 <span class="period">/month</span>
               </div>
             </div>
-            <div class="tier-checkmark">
-              <img src="/assets/image/checkmark.svg" alt="Selected" />
+            <div class="tier-checkmark" aria-hidden="true">
+              <img src="/assets/image/checkmark.svg" alt="" />
             </div>
           </label>
         ))}
@@ -97,7 +98,12 @@ export function DonationTierSelector({
           <div class="tier-content">
             <h3 class="tier-name">Custom Amount</h3>
             <div class="custom-amount-input">
-              <span class="currency">$</span>
+              <span class="currency" aria-hidden="true">
+                $
+              </span>
+              <label for="custom-amount" class="visually-hidden">
+                Custom monthly donation amount in dollars
+              </label>
               <input
                 type="text"
                 inputmode="numeric"
@@ -106,6 +112,7 @@ export function DonationTierSelector({
                 data-min={SubscriptionManager.minimumAmount.cents / 100}
                 class="custom-input"
                 placeholder="0.00"
+                aria-describedby="custom-amount-monthly-hint"
                 value={
                   hasCustomAmount
                     ? ((existingAmount ?? 0) / 100).toFixed(2)
@@ -114,14 +121,19 @@ export function DonationTierSelector({
                 required
                 readonly={!hasCustomAmount}
               />
-              <span class="period">/month</span>
+              <span class="period" aria-hidden="true">
+                /month
+              </span>
+              <span id="custom-amount-monthly-hint" class="visually-hidden">
+                Enter a custom dollar amount for your monthly donation
+              </span>
             </div>
           </div>
-          <div class="tier-checkmark">
-            <img src="/assets/image/checkmark.svg" alt="Selected" />
+          <div class="tier-checkmark" aria-hidden="true">
+            <img src="/assets/image/checkmark.svg" alt="" />
           </div>
         </label>
-      </div>
+      </fieldset>
 
       <button type="submit" class="btn btn-primary btn-large">
         {subscription ? "Update Monthly Donation" : "Start Monthly Donation"}

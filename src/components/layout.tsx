@@ -48,7 +48,7 @@ export function Layout({
         <body>
           <Navbar isAuthenticated={isAuthenticated} />
 
-          <main class="main-content">{children}</main>
+          <main id="main-content">{children}</main>
 
           <footer>
             <p>

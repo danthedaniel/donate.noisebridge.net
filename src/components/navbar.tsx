@@ -6,11 +6,11 @@ export interface NavbarProps {
 
 export default function Navbar({ isAuthenticated }: NavbarProps) {
   return (
-    <nav class="navbar">
+    <nav class="navbar" aria-label="Main navigation">
       <div class="navbar-content">
         <div class="navbar-left">
           <a href={paths.index()} class="navbar-brand">
-            <img src="/assets/image/logo.svg" alt="Noisebridge" class="logo" />
+            <img src="/assets/image/logo.svg" alt="Logo" class="logo" />
             <span class="site-title">Noisebridge</span>
           </a>
         </div>
