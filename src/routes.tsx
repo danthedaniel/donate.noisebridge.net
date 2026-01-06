@@ -25,6 +25,7 @@ import { ErrorPage } from "~/views/error";
 import { IndexPage } from "~/views/index";
 import { ManagePage } from "~/views/manage";
 import { NotFoundPage } from "~/views/not-found";
+import { QrEditorPage } from "~/views/qr-editor";
 import { ThankYouPage } from "~/views/thank-you";
 
 const authRateLimit: RouteShorthandOptions = {
@@ -510,6 +511,44 @@ export default async function routes(fastify: FastifyInstance) {
     );
 
     return reply.redirect(result.checkoutUrl);
+  });
+
+  fastify.get<{
+    Querystring: {
+      name?: string;
+      description?: string;
+      amount?: string;
+      "use-logo"?: string;
+    };
+  }>(paths.qrSvg(), async (request, reply) => {
+    const { name, description, amount, "use-logo": useLogo } = request.query;
+
+    const amountCents = parseToCents(amount ?? "");
+    if (amountCents === null) {
+      return reply.status(400).send("Invalid amount");
+    }
+
+    const includelogo = useLogo !== "false";
+    const qrCode = donationManager.createQRCode(
+      amountCents,
+      name,
+      description,
+      includelogo,
+    );
+
+    return reply
+      .header("Cache-Control", "no-cache, no-store, must-revalidate")
+      .type("image/svg+xml")
+      .send(qrCode.svg({ container: "svg-viewbox" }));
+  });
+
+  fastify.get(paths.qrEditor(), async (request, reply) => {
+    return reply.html(
+      <QrEditorPage
+        isAuthenticated={isAuthenticated(request, reply)}
+        baseUrl={config.baseUrl}
+      />,
+    );
   });
 
   fastify.post(paths.subscribe(), async (request, reply) => {

@@ -15,6 +15,13 @@ export default function Navbar({ isAuthenticated }: NavbarProps) {
           </a>
         </div>
         <div class="navbar-right">
+          <a
+            href={paths.qrEditor()}
+            class="btn-nav btn-nav-icon"
+            aria-label="QR Code Editor"
+          >
+            <img src="/assets/image/qr-code.svg" alt="" class="nav-icon" />
+          </a>
           {isAuthenticated ? (
             <>
               <a

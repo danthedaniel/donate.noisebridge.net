@@ -54,6 +54,14 @@ const paths = {
    */
   qr: () => "/qr",
   /**
+   * `/qr.svg`
+   */
+  qrSvg: () => "/qr.svg",
+  /**
+   * `/qr-editor`
+   */
+  qrEditor: () => "/qr-editor",
+  /**
    * `/auth`
    */
   signIn: (params?: MessageParams) => formatPath("/auth", params),

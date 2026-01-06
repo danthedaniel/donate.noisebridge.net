@@ -18,6 +18,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.3.8",
     "@playwright/test": "^1.57.0",
+    "@types/bmp-js": "^0.1.2",
     "@types/bun": "latest",
     "@types/mjml": "^4.7.4",
     "playwright": "^1.57.0"
@@ -32,9 +33,11 @@
     "@fastify/static": "^9.0.0",
     "@kitajs/fastify-html-plugin": "^4.2.1",
     "@kitajs/html": "^4.2.11",
+    "bmp-js": "0.1.0",
     "dotenv": "^17.2.3",
     "fastify": "^5.6.2",
     "mjml": "^4.18.0",
+    "qrcode-svg": "1.1.0",
     "resend": "^6.6.0",
     "stripe": "^20.1.0"
   }
